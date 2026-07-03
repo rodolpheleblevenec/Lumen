@@ -21,7 +21,7 @@ export function GoogleButton() {
     <button
       onClick={signIn}
       disabled={loading}
-      className="flex min-h-12 items-center gap-3 rounded-full bg-white px-6 py-3 font-medium text-stone-800 shadow-md transition active:scale-95 disabled:opacity-60 dark:bg-stone-800 dark:text-stone-100"
+      className="flex min-h-12 items-center gap-3 rounded-full border border-line bg-card px-6 py-3 font-medium shadow-md transition active:scale-95 disabled:opacity-60"
     >
       <svg viewBox="0 0 24 24" className="h-5 w-5" aria-hidden>
         <path

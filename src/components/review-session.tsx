@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import { Repeat2 } from "lucide-react";
 import {
   completeReview,
   type ReviewOutcome,
@@ -18,10 +19,16 @@ type ReviewItem = {
   explanation: string;
 };
 
+function buzz(pattern: number | number[]) {
+  try {
+    navigator.vibrate?.(pattern);
+  } catch {
+    /* non supporté */
+  }
+}
+
 function shuffled(item: ReviewItem): { choices: string[]; answerIdx: number } {
-  const order = item.choices
-    .map((_, i) => i)
-    .sort(() => Math.random() - 0.5);
+  const order = item.choices.map((_, i) => i).sort(() => Math.random() - 0.5);
   return {
     choices: order.map((i) => item.choices[i]),
     answerIdx: order.indexOf(item.answerIdx),
@@ -41,34 +48,34 @@ export function ReviewSession({ items }: { items: ReviewItem[] }) {
 
   if (result) {
     return (
-      <div className="flex flex-col items-center gap-5 pt-16 text-center">
+      <div className="animate-fade-up flex flex-col items-center gap-5 pt-16 text-center">
         <span className="text-6xl" aria-hidden>
           {result.correct === result.reviewed ? "🌟" : "🌱"}
         </span>
-        <h1 className="text-2xl font-bold">Révisions terminées</h1>
+        <h1 className="font-display text-2xl font-semibold">
+          Révisions terminées
+        </h1>
         <div className="flex gap-3">
-          <div className="rounded-2xl bg-white px-6 py-4 shadow-sm dark:bg-stone-900">
-            <p className="text-3xl font-bold tabular-nums">
+          <div className="rounded-2xl border border-line bg-card px-6 py-4">
+            <p className="font-display text-3xl font-semibold tabular-nums">
               {result.correct}/{result.reviewed}
             </p>
-            <p className="text-xs text-stone-500 dark:text-stone-400">
-              réussies
-            </p>
+            <p className="text-xs text-ink-soft">réussies</p>
           </div>
-          <div className="rounded-2xl bg-white px-6 py-4 shadow-sm dark:bg-stone-900">
-            <p className="text-3xl font-bold tabular-nums">
+          <div className="rounded-2xl border border-line bg-card px-6 py-4">
+            <p className="font-display text-3xl font-semibold tabular-nums">
               +{result.points}
             </p>
-            <p className="text-xs text-stone-500 dark:text-stone-400">points</p>
+            <p className="text-xs text-ink-soft">points</p>
           </div>
         </div>
         {result.acquired > 0 && (
-          <p className="text-sm font-medium text-green-700 dark:text-green-400">
+          <p className="text-sm font-medium text-good">
             🎓 {result.acquired} notion{result.acquired > 1 ? "s" : ""}{" "}
             définitivement acquise{result.acquired > 1 ? "s" : ""} !
           </p>
         )}
-        <p className="max-w-xs text-balance text-sm text-stone-500 dark:text-stone-400">
+        <p className="max-w-xs text-balance text-sm text-ink-soft">
           Les cartes réussies reviendront plus tard, les ratées dans 2 jours.
         </p>
       </div>
@@ -77,20 +84,20 @@ export function ReviewSession({ items }: { items: ReviewItem[] }) {
 
   if (!started) {
     return (
-      <div className="flex flex-col items-center gap-4 pt-20 text-center">
-        <span className="text-5xl" aria-hidden>
-          🔁
+      <div className="animate-fade-up flex flex-col items-center gap-4 pt-20 text-center">
+        <span className="flex h-20 w-20 items-center justify-center rounded-full bg-accent-soft">
+          <Repeat2 size={32} className="text-accent-strong" aria-hidden />
         </span>
-        <h1 className="text-2xl font-bold">
+        <h1 className="font-display text-2xl font-semibold">
           {items.length} carte{items.length > 1 ? "s" : ""} à réviser
         </h1>
-        <p className="max-w-xs text-balance text-stone-500 dark:text-stone-400">
+        <p className="max-w-xs text-balance text-ink-soft">
           2 minutes pour ancrer ce que tu as appris — 5 points par bonne
           réponse.
         </p>
         <button
           onClick={() => setStarted(true)}
-          className="mt-2 min-h-12 rounded-full bg-orange-600 px-8 py-3 font-semibold text-white shadow-md transition active:scale-95"
+          className="mt-2 min-h-12 rounded-full bg-accent px-8 py-3 font-semibold text-on-accent shadow-md transition active:scale-95"
         >
           C&apos;est parti
         </button>
@@ -101,6 +108,11 @@ export function ReviewSession({ items }: { items: ReviewItem[] }) {
   const item = items[index];
   const variant = variants[index];
   const answered = selected !== null;
+
+  function selectAnswer(i: number) {
+    setSelected(i);
+    buzz(i === variant.answerIdx ? 18 : [30, 40, 30]);
+  }
 
   async function next() {
     const updated = [
@@ -125,38 +137,41 @@ export function ReviewSession({ items }: { items: ReviewItem[] }) {
   }
 
   return (
-    <div className="space-y-5">
+    <div key={index} className="animate-slide-in space-y-5">
       <div className="flex items-center justify-between">
-        <p className="text-sm font-semibold uppercase tracking-wide text-orange-600 dark:text-orange-400">
+        <p className="text-[13px] font-semibold uppercase tracking-[0.08em] text-accent">
           Carte {index + 1}/{items.length}
         </p>
-        <p className="text-xs text-stone-400">{item.label}</p>
+        <p className="max-w-[50%] truncate text-xs text-ink-soft">
+          {item.label}
+        </p>
       </div>
 
-      <h2 className="text-xl font-bold leading-snug">{item.prompt}</h2>
+      <h2 className="font-display text-[22px] font-semibold leading-snug">
+        {item.prompt}
+      </h2>
 
       <div className="space-y-2.5">
         {variant.choices.map((choice, i) => {
-          let style =
-            "border-stone-200 bg-white dark:border-stone-700 dark:bg-stone-900";
+          let style = "border-line bg-card";
+          let anim = "";
           if (answered) {
             if (i === variant.answerIdx) {
-              style =
-                "border-green-500 bg-green-50 dark:border-green-600 dark:bg-green-950/50";
+              style = "border-good bg-good-soft";
+              if (i === selected) anim = "animate-pop";
             } else if (i === selected) {
-              style =
-                "border-red-400 bg-red-50 dark:border-red-600 dark:bg-red-950/50";
+              style = "border-bad bg-bad-soft";
+              anim = "animate-shake";
             } else {
-              style =
-                "border-stone-200 bg-white opacity-50 dark:border-stone-700 dark:bg-stone-900";
+              style = "border-line bg-card opacity-45";
             }
           }
           return (
             <button
               key={i}
               disabled={answered}
-              onClick={() => setSelected(i)}
-              className={`block min-h-13 w-full rounded-2xl border-2 p-3.5 text-left leading-snug transition active:scale-[0.98] ${style}`}
+              onClick={() => selectAnswer(i)}
+              className={`block min-h-13 w-full rounded-2xl border-2 p-3.5 text-left leading-snug transition active:scale-[0.98] ${style} ${anim}`}
             >
               {choice}
             </button>
@@ -165,9 +180,11 @@ export function ReviewSession({ items }: { items: ReviewItem[] }) {
       </div>
 
       {answered && (
-        <div className="rounded-2xl bg-stone-100 p-4 text-[15px] leading-relaxed dark:bg-stone-800">
+        <div className="animate-fade-up rounded-2xl bg-card-soft p-4 text-[15px] leading-relaxed">
           <p className="font-semibold">
-            {selected === variant.answerIdx ? "✅ Toujours acquis !" : "❌ À retravailler"}
+            {selected === variant.answerIdx
+              ? "✅ Toujours acquis !"
+              : "❌ À retravailler"}
           </p>
           <p className="mt-1">{item.explanation}</p>
         </div>
@@ -177,7 +194,7 @@ export function ReviewSession({ items }: { items: ReviewItem[] }) {
         <button
           onClick={next}
           disabled={submitting}
-          className="min-h-13 w-full rounded-full bg-orange-600 px-6 py-3.5 text-lg font-semibold text-white shadow-md transition active:scale-95 disabled:opacity-60"
+          className="min-h-13 w-full rounded-full bg-accent px-6 py-3.5 text-lg font-semibold text-on-accent shadow-md transition active:scale-95 disabled:opacity-60"
         >
           {submitting
             ? "Enregistrement…"

@@ -20,8 +20,8 @@ export default async function NonInvitePage() {
       <span className="text-5xl" aria-hidden>
         🔒
       </span>
-      <h1 className="text-2xl font-bold">Pas encore invité</h1>
-      <p className="max-w-sm text-balance text-stone-600 dark:text-stone-300">
+      <h1 className="font-display text-2xl font-semibold">Pas encore invité</h1>
+      <p className="max-w-sm text-balance text-ink-soft">
         Lumen est un cercle privé. Ton compte{" "}
         <span className="font-medium">{String(claims.email ?? "")}</span>{" "}
         n&apos;est pas dans la liste des invités — demande à Rodolphe de
@@ -30,7 +30,7 @@ export default async function NonInvitePage() {
       <form action="/auth/signout" method="post">
         <button
           type="submit"
-          className="min-h-12 rounded-full border border-stone-300 px-6 py-3 font-medium transition active:scale-95 dark:border-stone-600"
+          className="min-h-12 rounded-full border border-line px-6 py-3 font-medium transition active:scale-95"
         >
           Se déconnecter
         </button>

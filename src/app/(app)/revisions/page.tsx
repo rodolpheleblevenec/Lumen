@@ -31,12 +31,12 @@ export default async function RevisionsPage() {
       .maybeSingle();
 
     return (
-      <div className="flex flex-col items-center gap-4 pt-20 text-center">
-        <span className="text-5xl" aria-hidden>
+      <div className="animate-fade-up flex flex-col items-center gap-4 pt-20 text-center">
+        <span className="flex h-20 w-20 items-center justify-center rounded-full bg-good-soft text-4xl">
           🌿
         </span>
-        <h1 className="text-2xl font-bold">Rien à réviser</h1>
-        <p className="max-w-xs text-balance text-stone-500 dark:text-stone-400">
+        <h1 className="font-display text-2xl font-semibold">Rien à réviser</h1>
+        <p className="max-w-xs text-balance text-ink-soft">
           {next
             ? `Tes prochaines cartes reviendront le ${new Intl.DateTimeFormat(
                 "fr-FR",

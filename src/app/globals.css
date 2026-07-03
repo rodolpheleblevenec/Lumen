@@ -1,26 +1,147 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+/* ── Lumen — « la lumière du matin sur du papier » ──────────────
+   Papier aube légèrement doré, encre chaude, un accent or brûlé
+   dépensé avec parcimonie. Soir : brun nuit profond, encre ivoire. */
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+:root {
+  --paper: #fbf7ee;
+  --paper-glow: #f6e7c6;
+  --card: #ffffff;
+  --card-soft: #f4ecdd;
+  --ink: #2b2115;
+  --ink-soft: #857357;
+  --line: #e8dec9;
+  --accent: #a16207;
+  --accent-strong: #7c4a05;
+  --accent-soft: #f3e3bd;
+  --on-accent: #fffaf0;
+  --good: #3f6f3f;
+  --good-soft: #e4efdd;
+  --bad: #a03c2e;
+  --bad-soft: #f6e3de;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --paper: #171209;
+    --paper-glow: #2a1f0e;
+    --card: #221a0f;
+    --card-soft: #2c2213;
+    --ink: #f0e6d2;
+    --ink-soft: #a5906c;
+    --line: #382d1a;
+    --accent: #e3a83b;
+    --accent-strong: #f0be5e;
+    --accent-soft: #3a2c12;
+    --on-accent: #221a0f;
+    --good: #8fbb7f;
+    --good-soft: #263420;
+    --bad: #e08a77;
+    --bad-soft: #3d251f;
   }
 }
 
+@theme inline {
+  --color-paper: var(--paper);
+  --color-paper-glow: var(--paper-glow);
+  --color-card: var(--card);
+  --color-card-soft: var(--card-soft);
+  --color-ink: var(--ink);
+  --color-ink-soft: var(--ink-soft);
+  --color-line: var(--line);
+  --color-accent: var(--accent);
+  --color-accent-strong: var(--accent-strong);
+  --color-accent-soft: var(--accent-soft);
+  --color-on-accent: var(--on-accent);
+  --color-good: var(--good);
+  --color-good-soft: var(--good-soft);
+  --color-bad: var(--bad);
+  --color-bad-soft: var(--bad-soft);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+  --font-display: var(--font-fraunces);
+  --font-reading: var(--font-literata);
+}
+
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-geist-sans), system-ui, sans-serif;
+}
+
+/* Lueur d'aube en haut de page — discrète, plus douce le soir */
+.sunrise {
+  background:
+    radial-gradient(120% 70% at 50% -20%, var(--paper-glow) 0%, transparent 60%),
+    var(--paper);
+}
+
+/* ── Lecture longue ── */
+.prose-lesson {
+  font-family: var(--font-literata), Georgia, serif;
+  font-size: 1.075rem;
+  line-height: 1.75;
+}
+.prose-lesson h2 {
+  font-family: var(--font-fraunces), Georgia, serif;
+  font-weight: 600;
+  font-size: 1.3rem;
+  line-height: 1.3;
+  padding-top: 0.75rem;
+  text-wrap: balance;
+}
+
+/* ── Micro-interactions ── */
+@keyframes shake {
+  10%, 90% { transform: translateX(-1px); }
+  20%, 80% { transform: translateX(2px); }
+  30%, 50%, 70% { transform: translateX(-4px); }
+  40%, 60% { transform: translateX(4px); }
+}
+@keyframes pop {
+  0% { transform: scale(1); }
+  40% { transform: scale(1.045); }
+  100% { transform: scale(1); }
+}
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes slide-in {
+  from { opacity: 0; transform: translateX(26px); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes flame {
+  0%, 100% { transform: scale(1) rotate(-2deg); }
+  50% { transform: scale(1.15) rotate(2deg); }
+}
+@keyframes shimmer {
+  from { background-position: 200% 0; }
+  to { background-position: -200% 0; }
+}
+
+.animate-shake { animation: shake 0.4s; }
+.animate-pop { animation: pop 0.3s; }
+.animate-fade-up { animation: fade-up 0.35s ease-out both; }
+.animate-slide-in { animation: slide-in 0.28s ease-out both; }
+.animate-flame { animation: flame 0.9s ease-in-out infinite; }
+
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--card-soft) 25%,
+    var(--line) 50%,
+    var(--card-soft) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.4s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }

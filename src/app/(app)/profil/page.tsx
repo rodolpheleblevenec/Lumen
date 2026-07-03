@@ -32,10 +32,10 @@ export default async function ProfilPage() {
     ]);
 
   return (
-    <div className="space-y-6">
-      <h1 className="text-2xl font-bold">Profil</h1>
+    <div className="animate-fade-up space-y-6">
+      <h1 className="font-display text-2xl font-semibold">Profil</h1>
 
-      <div className="flex items-center gap-4 rounded-2xl bg-white p-4 shadow-sm dark:bg-stone-900">
+      <div className="flex items-center gap-4 rounded-2xl border border-line bg-card p-4">
         {profile?.avatar_url ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
@@ -45,32 +45,32 @@ export default async function ProfilPage() {
             referrerPolicy="no-referrer"
           />
         ) : (
-          <span className="flex h-14 w-14 items-center justify-center rounded-full bg-orange-100 text-xl dark:bg-orange-950">
+          <span className="flex h-14 w-14 items-center justify-center rounded-full bg-accent-soft text-xl font-semibold text-accent-strong">
             {profile?.display_name?.charAt(0).toUpperCase()}
           </span>
         )}
         <div>
           <p className="text-lg font-semibold">{profile?.display_name}</p>
-          <p className="text-sm text-stone-500 dark:text-stone-400">
+          <p className="text-sm text-ink-soft">
             {String(data?.claims?.email ?? "")}
           </p>
         </div>
       </div>
 
       <div className="grid grid-cols-3 gap-3 text-center">
-        <div className="rounded-2xl bg-white p-4 shadow-sm dark:bg-stone-900">
+        <div className="rounded-2xl border border-line bg-card p-4">
           <p className="text-2xl font-bold">🔥 {streak?.current ?? 0}</p>
-          <p className="text-xs text-stone-500 dark:text-stone-400">
+          <p className="text-xs text-ink-soft">
             Streak actuel
           </p>
         </div>
-        <div className="rounded-2xl bg-white p-4 shadow-sm dark:bg-stone-900">
+        <div className="rounded-2xl border border-line bg-card p-4">
           <p className="text-2xl font-bold">🏅 {streak?.best ?? 0}</p>
-          <p className="text-xs text-stone-500 dark:text-stone-400">Record</p>
+          <p className="text-xs text-ink-soft">Record</p>
         </div>
-        <div className="rounded-2xl bg-white p-4 shadow-sm dark:bg-stone-900">
+        <div className="rounded-2xl border border-line bg-card p-4">
           <p className="text-2xl font-bold">🧠 {acquired ?? 0}</p>
-          <p className="text-xs text-stone-500 dark:text-stone-400">
+          <p className="text-xs text-ink-soft">
             Notions acquises
           </p>
         </div>
@@ -85,7 +85,7 @@ export default async function ProfilPage() {
               return (
                 <div
                   key={b.badge_key}
-                  className="flex items-center gap-2.5 rounded-2xl bg-white p-3 shadow-sm dark:bg-stone-900"
+                  className="flex items-center gap-2.5 rounded-2xl border border-line bg-card p-3"
                 >
                   <span className="text-2xl">{meta?.icon ?? "🏆"}</span>
                   <span className="text-sm font-medium leading-tight">
@@ -96,7 +96,7 @@ export default async function ProfilPage() {
             })}
           </div>
         ) : (
-          <p className="text-sm text-stone-500 dark:text-stone-400">
+          <p className="text-sm text-ink-soft">
             Aucun badge pour l&apos;instant — le premier tombe à 7 jours de
             streak ou au premier sans-faute.
           </p>
@@ -111,7 +111,7 @@ export default async function ProfilPage() {
       <form action="/auth/signout" method="post" className="pt-2">
         <button
           type="submit"
-          className="min-h-12 w-full rounded-full border border-stone-300 px-6 py-3 font-medium transition active:scale-95 dark:border-stone-600"
+          className="min-h-12 w-full rounded-full border border-line px-6 py-3 font-medium transition active:scale-95"
         >
           Se déconnecter
         </button>

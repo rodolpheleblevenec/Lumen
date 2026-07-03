@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Geist, Geist_Mono, Fraunces, Literata } from "next/font/google";
 import { PwaRegister } from "@/components/pwa-register";
 import "./globals.css";
 
@@ -13,6 +13,19 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+// Display : titres de leçons, grands chiffres
+const fraunces = Fraunces({
+  variable: "--font-fraunces",
+  subsets: ["latin"],
+  axes: ["opsz", "SOFT", "WONK"],
+});
+
+// Lecture longue : corps des leçons
+const literata = Literata({
+  variable: "--font-literata",
+  subsets: ["latin"],
+});
+
 export const metadata: Metadata = {
   title: "Lumen",
   description: "5 minutes par jour pour une culture générale qui reste.",
@@ -20,8 +33,8 @@ export const metadata: Metadata = {
 
 export const viewport: Viewport = {
   themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#fffbeb" },
-    { media: "(prefers-color-scheme: dark)", color: "#0c0a09" },
+    { media: "(prefers-color-scheme: light)", color: "#fbf7ee" },
+    { media: "(prefers-color-scheme: dark)", color: "#171209" },
   ],
   width: "device-width",
   initialScale: 1,
@@ -35,9 +48,9 @@ export default function RootLayout({
   return (
     <html
       lang="fr"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${geistSans.variable} ${geistMono.variable} ${fraunces.variable} ${literata.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col bg-amber-50/40 text-stone-900 dark:bg-stone-950 dark:text-stone-100">
+      <body className="sunrise min-h-full flex flex-col">
         <PwaRegister />
         {children}
       </body>
