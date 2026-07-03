@@ -30,7 +30,10 @@ classement hebdo, badges. Bibliothèque des leçons passées + 1 joker de rattra
   `src/server/generation/prompt.md`. `OPENAI_API_KEY` et `SUPABASE_SERVICE_ROLE_KEY`
   ne doivent JAMAIS atteindre le client — serveur uniquement (routes API / Server Actions).
 - Routes cron (génération, push) : protégées par `CRON_SECRET`, appelées par
-  GCP Cloud Scheduler. Déploiement cible : Cloud Run (scale-to-zero).
+  GCP Cloud Scheduler (jobs `lumen-generate-lesson` 4h30 et `lumen-send-push` 8h,
+  Europe/Paris). Prod : Cloud Run `lumen`, projet GCP `lumen-501322`, europe-west1 —
+  https://lumen-429795756050.europe-west1.run.app. Déploiement manuel par
+  `gcloud run deploy lumen --source .` (pas de trigger auto sur push).
 - Contenu et UI en **français**.
 
 ## Commandes
