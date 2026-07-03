@@ -29,7 +29,7 @@ export function WeekStrip({
               <span
                 className={`flex h-7 w-7 items-center justify-center rounded-full text-[11px] font-semibold ${
                   done
-                    ? "bg-accent text-on-accent"
+                    ? "bg-sun text-on-sun"
                     : isToday
                       ? "border-2 border-accent text-accent"
                       : isFuture

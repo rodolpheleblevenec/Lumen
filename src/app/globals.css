@@ -5,40 +5,48 @@
    dépensé avec parcimonie. Soir : brun nuit profond, encre ivoire. */
 
 :root {
-  --paper: #fbf7ee;
-  --paper-glow: #f6e7c6;
+  --paper: #fdf8ec;
+  --paper-glow: #ffdf9e;
+  --paper-glow2: #ffceae;
   --card: #ffffff;
-  --card-soft: #f4ecdd;
-  --ink: #2b2115;
-  --ink-soft: #857357;
-  --line: #e8dec9;
-  --accent: #a16207;
-  --accent-strong: #7c4a05;
-  --accent-soft: #f3e3bd;
+  --card-soft: #f6edda;
+  --ink: #241b0e;
+  --ink-soft: #8a7452;
+  --line: #ecdfc4;
+  --accent: #d97705;
+  --accent-strong: #9a4d00;
+  --accent-soft: #ffe9c0;
   --on-accent: #fffaf0;
-  --good: #3f6f3f;
-  --good-soft: #e4efdd;
-  --bad: #a03c2e;
-  --bad-soft: #f6e3de;
+  --sun-a: #f6b23c;
+  --sun-b: #e07b00;
+  --on-sun: #33210a;
+  --good: #2e7d43;
+  --good-soft: #ddf2dd;
+  --bad: #c03a24;
+  --bad-soft: #ffe4dc;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --paper: #171209;
-    --paper-glow: #2a1f0e;
-    --card: #221a0f;
-    --card-soft: #2c2213;
-    --ink: #f0e6d2;
-    --ink-soft: #a5906c;
-    --line: #382d1a;
-    --accent: #e3a83b;
-    --accent-strong: #f0be5e;
-    --accent-soft: #3a2c12;
-    --on-accent: #221a0f;
-    --good: #8fbb7f;
-    --good-soft: #263420;
-    --bad: #e08a77;
-    --bad-soft: #3d251f;
+    --paper: #191207;
+    --paper-glow: #3d2a0c;
+    --paper-glow2: #38200f;
+    --card: #241b0d;
+    --card-soft: #302411;
+    --ink: #f5ead4;
+    --ink-soft: #b0996f;
+    --line: #3e3016;
+    --accent: #f5a623;
+    --accent-strong: #ffc45e;
+    --accent-soft: #42300f;
+    --on-accent: #241503;
+    --sun-a: #ffc65c;
+    --sun-b: #f08c0a;
+    --on-sun: #2b1a05;
+    --good: #7fc98a;
+    --good-soft: #22381f;
+    --bad: #ef8f74;
+    --bad-soft: #44251b;
   }
 }
 
@@ -54,6 +62,7 @@
   --color-accent-strong: var(--accent-strong);
   --color-accent-soft: var(--accent-soft);
   --color-on-accent: var(--on-accent);
+  --color-on-sun: var(--on-sun);
   --color-good: var(--good);
   --color-good-soft: var(--good-soft);
   --color-bad: var(--bad);
@@ -70,11 +79,22 @@ body {
   font-family: var(--font-geist-sans), system-ui, sans-serif;
 }
 
-/* Lueur d'aube en haut de page — discrète, plus douce le soir */
+/* Lueur d'aube en haut de page — or + pointe de corail, plus douce le soir */
 .sunrise {
   background:
-    radial-gradient(120% 70% at 50% -20%, var(--paper-glow) 0%, transparent 60%),
+    radial-gradient(90% 55% at 30% -15%, var(--paper-glow) 0%, transparent 60%),
+    radial-gradient(80% 45% at 85% -12%, var(--paper-glow2) 0%, transparent 55%),
     var(--paper);
+}
+
+/* Dégradé soleil : streak validé, pastilles de semaine, progression */
+.bg-sun {
+  background-image: linear-gradient(135deg, var(--sun-a), var(--sun-b));
+}
+
+/* Ombre chaude des CTA principaux */
+.glow-accent {
+  box-shadow: 0 10px 26px -10px color-mix(in srgb, var(--sun-b) 55%, transparent);
 }
 
 /* ── Lecture longue ── */

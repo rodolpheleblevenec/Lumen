@@ -87,7 +87,7 @@ export function Onboarding() {
             )}
             <button
               onClick={() => (last ? close() : setSlide(slide + 1))}
-              className="min-h-11 rounded-full bg-accent px-6 py-2.5 font-semibold text-on-accent transition active:scale-95"
+              className="glow-accent min-h-11 rounded-full bg-accent px-6 py-2.5 font-semibold text-on-accent transition active:scale-95"
             >
               {last ? "C'est parti ☀️" : "Suivant"}
             </button>

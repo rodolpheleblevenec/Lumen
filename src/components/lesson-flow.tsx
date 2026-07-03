@@ -189,11 +189,11 @@ export function LessonFlow({
   /* ─── Lecture ─── */
   if (phase === "reading") {
     return (
-      <article className="animate-fade-up space-y-6">
-        {/* Progression de lecture */}
-        <div className="fixed inset-x-0 top-0 z-20 h-[3px] bg-transparent">
+      <article className="space-y-6">
+        {/* Progression de lecture — sticky en haut de l'écran */}
+        <div className="sticky top-0 z-20 -mx-5 h-1 bg-line/40">
           <div
-            className="h-full bg-accent transition-[width] duration-150"
+            className="bg-sun h-full transition-[width] duration-150"
             style={{ width: `${readProgress * 100}%` }}
           />
         </div>
@@ -276,7 +276,7 @@ export function LessonFlow({
             setPhase("quiz");
             window.scrollTo({ top: 0 });
           }}
-          className="min-h-13 w-full rounded-full bg-accent px-6 py-3.5 text-lg font-semibold text-on-accent shadow-md transition active:scale-95"
+          className="min-h-13 w-full glow-accent rounded-full bg-accent px-6 py-3.5 text-lg font-semibold text-on-accent transition active:scale-95"
         >
           Passer au quiz →
         </button>
@@ -297,7 +297,7 @@ export function LessonFlow({
         </p>
         <button
           onClick={() => setPhase("quiz")}
-          className="mt-2 min-h-12 rounded-full bg-accent px-8 py-3 font-semibold text-on-accent shadow-md transition active:scale-95"
+          className="glow-accent mt-2 min-h-12 rounded-full bg-accent px-8 py-3 font-semibold text-on-accent transition active:scale-95"
         >
           Je tente !
         </button>
@@ -390,7 +390,7 @@ export function LessonFlow({
         <button
           onClick={nextQuestion}
           disabled={submitting}
-          className="min-h-13 w-full rounded-full bg-accent px-6 py-3.5 text-lg font-semibold text-on-accent shadow-md transition active:scale-95 disabled:opacity-60"
+          className="min-h-13 w-full glow-accent rounded-full bg-accent px-6 py-3.5 text-lg font-semibold text-on-accent transition active:scale-95 disabled:opacity-60"
         >
           {submitting
             ? "Enregistrement…"

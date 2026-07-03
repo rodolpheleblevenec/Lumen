@@ -97,7 +97,7 @@ export function ReviewSession({ items }: { items: ReviewItem[] }) {
         </p>
         <button
           onClick={() => setStarted(true)}
-          className="mt-2 min-h-12 rounded-full bg-accent px-8 py-3 font-semibold text-on-accent shadow-md transition active:scale-95"
+          className="glow-accent mt-2 min-h-12 rounded-full bg-accent px-8 py-3 font-semibold text-on-accent transition active:scale-95"
         >
           C&apos;est parti
         </button>
@@ -194,7 +194,7 @@ export function ReviewSession({ items }: { items: ReviewItem[] }) {
         <button
           onClick={next}
           disabled={submitting}
-          className="min-h-13 w-full rounded-full bg-accent px-6 py-3.5 text-lg font-semibold text-on-accent shadow-md transition active:scale-95 disabled:opacity-60"
+          className="glow-accent min-h-13 w-full rounded-full bg-accent px-6 py-3.5 text-lg font-semibold text-on-accent transition active:scale-95 disabled:opacity-60"
         >
           {submitting
             ? "Enregistrement…"

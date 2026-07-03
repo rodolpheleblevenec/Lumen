@@ -46,7 +46,7 @@ export default async function AppLayout({
         <span
           className={`flex items-center gap-1.5 rounded-full px-3 py-1 text-sm font-semibold tabular-nums ${
             validatedToday
-              ? "bg-accent-soft text-accent-strong"
+              ? "bg-sun text-on-sun shadow-sm"
               : "bg-card-soft text-ink-soft"
           }`}
           title={
