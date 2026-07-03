@@ -6,6 +6,11 @@ const nextConfig: NextConfig = {
   turbopack: {
     root: __dirname,
   },
+  // Le prompt de génération est lu via fs à l'exécution : l'inclure dans
+  // le build standalone (Cloud Run).
+  outputFileTracingIncludes: {
+    "/api/cron/generate-lesson": ["./src/server/generation/prompt.md"],
+  },
 };
 
 export default nextConfig;
