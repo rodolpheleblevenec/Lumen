@@ -2,7 +2,9 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
-import { addDays, parisToday, POINTS } from "@/lib";
+import { addDays, mondayOfWeek, parisToday, POINTS } from "@/lib";
+import { srsAfterReview } from "@/lib/srs";
+import { awardQuizBadges, awardReviewBadges } from "@/server/badges";
 
 export type QuizResult = {
   baseCorrect: number;
@@ -10,21 +12,37 @@ export type QuizResult = {
   points: number;
   streak: number;
   alreadyDone?: boolean;
+  isCatchup?: boolean;
+  streakSaved?: boolean;
 };
 
+async function requireUserId() {
+  const supabase = await createClient();
+  const { data } = await supabase.auth.getClaims();
+  const userId = data?.claims?.sub as string | undefined;
+  if (!userId) throw new Error("non authentifié");
+  return { supabase, userId };
+}
+
 /**
- * Valide le quiz du jour : recalcule le score côté serveur, crédite les
- * points, met à jour le streak et crée les cartes SRS (dues à J+2).
- * `answers` : 5 index de réponse alignés sur [base 0-2, bonus 0-1], -1 = non répondu.
+ * Valide un quiz (leçon du jour OU leçon de la bibliothèque) :
+ * recalcule le score côté serveur, crédite les points, met à jour le
+ * streak (avec joker de rattrapage pour la leçon de la veille) et crée
+ * les cartes SRS (dues à J+2).
+ * `answers` : 5 index alignés sur [base 0-2, bonus 0-1], -1 = non répondu.
  */
 export async function completeQuiz(
   lessonId: string,
   answers: number[]
 ): Promise<QuizResult> {
-  const supabase = await createClient();
-  const { data: claims } = await supabase.auth.getClaims();
-  const userId = claims?.claims?.sub as string | undefined;
-  if (!userId) throw new Error("non authentifié");
+  const { supabase, userId } = await requireUserId();
+
+  const { data: lesson } = await supabase
+    .from("lumen_lessons")
+    .select("id, date")
+    .eq("id", lessonId)
+    .single();
+  if (!lesson) throw new Error("leçon introuvable");
 
   // Garde anti double-soumission
   const { data: existing } = await supabase
@@ -69,7 +87,15 @@ export async function completeQuiz(
       if (answers[i] === ordered[i].answer_idx) bonusCorrect++;
     }
   }
-  const points = baseCorrect * POINTS.base + bonusCorrect * POINTS.bonus;
+
+  const today = parisToday();
+  const yesterday = addDays(today, -1);
+  const isCatchup = lesson.date !== today;
+
+  // Barème : jour même 10/20 pts — rattrapage 5 pts/bonne réponse (PRD §4.5)
+  const points = isCatchup
+    ? (baseCorrect + bonusCorrect) * POINTS.catchup
+    : baseCorrect * POINTS.base + bonusCorrect * POINTS.bonus;
 
   const now = new Date().toISOString();
   const { error: progressErr } = await supabase
@@ -80,45 +106,79 @@ export async function completeQuiz(
       read_at: now,
       quiz_completed_at: now,
       score: points,
+      is_catchup: isCatchup,
     });
   if (progressErr) throw progressErr;
 
-  const ledger = [
-    { user_id: userId, source: "quiz", points: baseCorrect * POINTS.base },
-  ];
-  if (bonusCorrect > 0) {
-    ledger.push({
-      user_id: userId,
-      source: "bonus",
-      points: bonusCorrect * POINTS.bonus,
-    });
+  if (points > 0) {
+    const ledger = isCatchup
+      ? [{ user_id: userId, source: "catchup", points }]
+      : [
+          { user_id: userId, source: "quiz", points: baseCorrect * POINTS.base },
+          ...(bonusCorrect > 0
+            ? [
+                {
+                  user_id: userId,
+                  source: "bonus",
+                  points: bonusCorrect * POINTS.bonus,
+                },
+              ]
+            : []),
+        ];
+    const { error: ledgerErr } = await supabase
+      .from("lumen_points_ledger")
+      .insert(ledger.filter((l) => l.points > 0));
+    if (ledgerErr) throw ledgerErr;
   }
-  const { error: ledgerErr } = await supabase
-    .from("lumen_points_ledger")
-    .insert(ledger.filter((l) => l.points > 0));
-  if (ledgerErr) throw ledgerErr;
 
-  // Streak : validé en terminant le quiz du jour
-  const today = parisToday();
-  const yesterday = addDays(today, -1);
+  // Streak
   const { data: streakRow } = await supabase
     .from("lumen_streaks")
-    .select("current, best, last_validated_date")
+    .select("current, best, last_validated_date, joker_used_week_of")
     .eq("user_id", userId)
     .maybeSingle();
 
-  let current = 1;
-  if (streakRow?.last_validated_date === today) {
-    current = streakRow.current;
-  } else if (streakRow?.last_validated_date === yesterday) {
-    current = (streakRow?.current ?? 0) + 1;
+  let current = streakRow?.current ?? 0;
+  let streakSaved = false;
+
+  if (!isCatchup) {
+    // Validation du jour
+    if (streakRow?.last_validated_date === today) {
+      current = streakRow.current;
+    } else if (streakRow?.last_validated_date === yesterday) {
+      current = (streakRow?.current ?? 0) + 1;
+    } else {
+      current = 1;
+    }
+    const best = Math.max(current, streakRow?.best ?? 0);
+    await supabase
+      .from("lumen_streaks")
+      .update({ current, best, last_validated_date: today })
+      .eq("user_id", userId);
+  } else if (
+    lesson.date === yesterday &&
+    streakRow &&
+    streakRow.last_validated_date !== yesterday &&
+    streakRow.last_validated_date !== today &&
+    streakRow.joker_used_week_of !== mondayOfWeek(today)
+  ) {
+    // Joker : rattraper la veille sous 24h sauve le streak (1/semaine)
+    current =
+      streakRow.last_validated_date === addDays(yesterday, -1)
+        ? (streakRow.current ?? 0) + 1
+        : 1;
+    const best = Math.max(current, streakRow.best ?? 0);
+    await supabase
+      .from("lumen_streaks")
+      .update({
+        current,
+        best,
+        last_validated_date: yesterday,
+        joker_used_week_of: mondayOfWeek(today),
+      })
+      .eq("user_id", userId);
+    streakSaved = true;
   }
-  const best = Math.max(current, streakRow?.best ?? 0);
-  const { error: streakErr } = await supabase
-    .from("lumen_streaks")
-    .update({ current, best, last_validated_date: today })
-    .eq("user_id", userId);
-  if (streakErr) throw streakErr;
 
   // Cartes SRS : les 5 notions reviennent à J+2
   const { data: notions } = await supabase
@@ -137,8 +197,104 @@ export async function completeQuiz(
     );
   }
 
+  await awardQuizBadges(supabase, userId, current, points);
+
   revalidatePath("/");
   revalidatePath("/classement");
+  revalidatePath("/bibliotheque");
 
-  return { baseCorrect, bonusCorrect, points, streak: current };
+  return { baseCorrect, bonusCorrect, points, streak: current, isCatchup, streakSaved };
+}
+
+export type ReviewOutcome = { notionId: string; correct: boolean };
+export type ReviewResult = {
+  reviewed: number;
+  correct: number;
+  points: number;
+  acquired: number;
+};
+
+/**
+ * Termine une session de révision : met à jour le niveau SRS de chaque
+ * carte (réussite → intervalle supérieur, échec → retour à J+2) et
+ * crédite 5 pts par carte réussie.
+ */
+export async function completeReview(
+  outcomes: ReviewOutcome[]
+): Promise<ReviewResult> {
+  const { supabase, userId } = await requireUserId();
+  const today = parisToday();
+
+  const notionIds = outcomes.map((o) => o.notionId);
+  const { data: cards } = await supabase
+    .from("lumen_srs_cards")
+    .select("notion_id, level, due_date")
+    .eq("user_id", userId)
+    .in("notion_id", notionIds)
+    .lte("due_date", today)
+    .lt("level", 5);
+  if (!cards?.length) return { reviewed: 0, correct: 0, points: 0, acquired: 0 };
+
+  const byNotion = new Map(cards.map((c) => [c.notion_id, c]));
+  const now = new Date().toISOString();
+  let correct = 0;
+  let acquired = 0;
+
+  for (const o of outcomes) {
+    const card = byNotion.get(o.notionId);
+    if (!card) continue; // carte pas due / déjà acquise : ignorée
+    const next = srsAfterReview(card.level, o.correct);
+    if (o.correct) correct++;
+    if (next.level === 5) acquired++;
+    await supabase
+      .from("lumen_srs_cards")
+      .update({
+        level: next.level,
+        due_date: addDays(today, next.interval),
+        last_reviewed_at: now,
+      })
+      .eq("user_id", userId)
+      .eq("notion_id", o.notionId);
+  }
+
+  const points = correct * POINTS.review;
+  if (points > 0) {
+    await supabase
+      .from("lumen_points_ledger")
+      .insert([{ user_id: userId, source: "review", points }]);
+  }
+
+  await awardReviewBadges(supabase, userId);
+
+  revalidatePath("/revisions");
+  revalidatePath("/classement");
+
+  return { reviewed: outcomes.length, correct, points, acquired };
+}
+
+/* ─── Notifications push ─── */
+
+export async function savePushSubscription(sub: {
+  endpoint: string;
+  keys: { p256dh: string; auth: string };
+}) {
+  const { supabase, userId } = await requireUserId();
+  await supabase.from("lumen_push_subscriptions").upsert(
+    {
+      user_id: userId,
+      endpoint: sub.endpoint,
+      p256dh: sub.keys.p256dh,
+      auth: sub.keys.auth,
+    },
+    { onConflict: "endpoint" }
+  );
+}
+
+export async function removePushSubscription(endpoint: string) {
+  const { supabase, userId } = await requireUserId();
+  await supabase
+    .from("lumen_push_subscriptions")
+    .delete()
+    .eq("user_id", userId)
+    .eq("endpoint", endpoint);
 }

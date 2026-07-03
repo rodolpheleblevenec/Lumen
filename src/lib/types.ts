@@ -16,3 +16,13 @@ export const POINTS = {
   review: 5,
   catchup: 5,
 } as const;
+
+export const BADGES: Record<string, { icon: string; label: string }> = {
+  perfect_quiz: { icon: "⭐", label: "Premier sans-faute (70 pts)" },
+  streak_7: { icon: "🔥", label: "7 jours d'affilée" },
+  streak_30: { icon: "⚡", label: "30 jours d'affilée" },
+  streak_100: { icon: "💎", label: "100 jours d'affilée" },
+  streak_365: { icon: "👑", label: "Une année entière" },
+  notions_50: { icon: "🧠", label: "50 notions acquises" },
+  domain_master: { icon: "🎓", label: "Un domaine maîtrisé" },
+};

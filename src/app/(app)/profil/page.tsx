@@ -1,11 +1,13 @@
 import { createClient } from "@/lib/supabase/server";
+import { BADGES } from "@/lib/types";
+import { NotificationsToggle } from "@/components/notifications-toggle";
 
 export default async function ProfilPage() {
   const supabase = await createClient();
   const { data } = await supabase.auth.getClaims();
   const userId = data?.claims?.sub as string;
 
-  const [{ data: profile }, { data: streak }, { count: acquired }] =
+  const [{ data: profile }, { data: streak }, { count: acquired }, { data: badges }] =
     await Promise.all([
       supabase
         .from("lumen_profiles")
@@ -22,6 +24,11 @@ export default async function ProfilPage() {
         .select("*", { count: "exact", head: true })
         .eq("user_id", userId)
         .eq("level", 5),
+      supabase
+        .from("lumen_badges")
+        .select("badge_key, earned_at")
+        .eq("user_id", userId)
+        .order("earned_at", { ascending: true }),
     ]);
 
   return (
@@ -69,7 +76,39 @@ export default async function ProfilPage() {
         </div>
       </div>
 
-      <form action="/auth/signout" method="post" className="pt-4">
+      <section className="space-y-3">
+        <h2 className="font-semibold">Badges</h2>
+        {badges?.length ? (
+          <div className="grid grid-cols-2 gap-2">
+            {badges.map((b) => {
+              const meta = BADGES[b.badge_key];
+              return (
+                <div
+                  key={b.badge_key}
+                  className="flex items-center gap-2.5 rounded-2xl bg-white p-3 shadow-sm dark:bg-stone-900"
+                >
+                  <span className="text-2xl">{meta?.icon ?? "🏆"}</span>
+                  <span className="text-sm font-medium leading-tight">
+                    {meta?.label ?? b.badge_key}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+        ) : (
+          <p className="text-sm text-stone-500 dark:text-stone-400">
+            Aucun badge pour l&apos;instant — le premier tombe à 7 jours de
+            streak ou au premier sans-faute.
+          </p>
+        )}
+      </section>
+
+      <section className="space-y-3">
+        <h2 className="font-semibold">Notifications</h2>
+        <NotificationsToggle />
+      </section>
+
+      <form action="/auth/signout" method="post" className="pt-2">
         <button
           type="submit"
           className="min-h-12 w-full rounded-full border border-stone-300 px-6 py-3 font-medium transition active:scale-95 dark:border-stone-600"

@@ -32,12 +32,14 @@ export function LessonFlow({
   questions,
   initialDone,
   initialScore,
+  mode = "today",
 }: {
   lesson: LessonData;
   dateLabel: string;
   questions: QuizQuestion[];
   initialDone: boolean;
   initialScore: number;
+  mode?: "today" | "catchup";
 }) {
   const router = useRouter();
   const [phase, setPhase] = useState<Phase>(initialDone ? "done" : "reading");
@@ -102,6 +104,11 @@ export function LessonFlow({
           <h1 className="mt-1 text-2xl font-bold leading-snug">
             {lesson.title}
           </h1>
+          {mode === "catchup" && (
+            <p className="mt-2 inline-block rounded-full bg-stone-200 px-3 py-1 text-xs font-medium dark:bg-stone-800">
+              Rattrapage · 5 pts par bonne réponse
+            </p>
+          )}
         </div>
 
         <p className="text-[17px] font-medium leading-relaxed text-stone-700 dark:text-stone-200">
@@ -206,9 +213,15 @@ export function LessonFlow({
           )}
         </div>
 
+        {result?.streakSaved && (
+          <p className="max-w-xs text-balance font-medium text-green-700 dark:text-green-400">
+            🃏 Joker utilisé : ton streak est sauvé !
+          </p>
+        )}
         <p className="max-w-xs text-balance text-sm text-stone-500 dark:text-stone-400">
-          Les 5 notions du jour reviendront en révision dans 2 jours. À
-          demain pour la prochaine leçon ! 🌅
+          {mode === "catchup"
+            ? "Les 5 notions de cette leçon rejoignent tes révisions."
+            : "Les 5 notions du jour reviendront en révision dans 2 jours. À demain pour la prochaine leçon ! 🌅"}
         </p>
 
         <details className="w-full pt-4 text-left">

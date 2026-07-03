@@ -1,0 +1,9 @@
+node_modules
+.next
+.git
+.vscode
+docs
+.env.local
+.mcp.json
+*.md
+!src/server/generation/prompt.md
