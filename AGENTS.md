@@ -32,8 +32,8 @@ classement hebdo, badges. Bibliothèque des leçons passées + 1 joker de rattra
 - Routes cron (génération, push) : protégées par `CRON_SECRET`, appelées par
   GCP Cloud Scheduler (jobs `lumen-generate-lesson` 4h30 et `lumen-send-push` 8h,
   Europe/Paris). Prod : Cloud Run `lumen`, projet GCP `lumen-501322`, europe-west1 —
-  https://lumen-429795756050.europe-west1.run.app. Déploiement manuel par
-  `gcloud run deploy lumen --source .` (pas de trigger auto sur push).
+  **https://lumen.rodserver.fr** (CNAME OVH → ghs.googlehosted.com, alias run.app).
+  Déploiement manuel par `gcloud run deploy lumen --source .` (pas de trigger auto sur push).
 - Contenu et UI en **français**.
 
 ## Commandes

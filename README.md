@@ -24,7 +24,7 @@ npm run dev
 
 ## Production
 
-- **App** : https://lumen-429795756050.europe-west1.run.app
+- **App** : https://lumen.rodserver.fr (alias : https://lumen-429795756050.europe-west1.run.app)
 - **Cloud Run** `lumen` (projet GCP `lumen-501322`, europe-west1, scale-to-zero, image via Dockerfile)
 - **Cloud Scheduler** : `lumen-generate-lesson` (4h30 Paris, génère la leçon) et
   `lumen-send-push` (8h00 Paris, notifications) — auth `Authorization: Bearer $CRON_SECRET`
