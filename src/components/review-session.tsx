@@ -31,7 +31,12 @@ function buzz(pattern: number | number[]) {
 }
 
 function shuffled(item: ReviewItem): { choices: string[]; answerIdx: number } {
-  const order = item.choices.map((_, i) => i).sort(() => Math.random() - 0.5);
+  // Fisher-Yates : permutation uniforme (contrairement à sort(random))
+  const order = item.choices.map((_, i) => i);
+  for (let i = order.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [order[i], order[j]] = [order[j], order[i]];
+  }
   return {
     choices: order.map((i) => item.choices[i]),
     answerIdx: order.indexOf(item.answerIdx),

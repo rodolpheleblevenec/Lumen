@@ -117,11 +117,20 @@ export async function generateLesson(date: string) {
 
   const { data: existing } = await supabase
     .from("lumen_lessons")
-    .select("id, title")
+    .select("id, title, status")
     .eq("date", date)
     .maybeSingle();
-  if (existing) {
+  if (existing?.status === "published") {
     return { ok: true as const, skipped: true as const, date, title: existing.title };
+  }
+  if (existing) {
+    // Draft orphelin d'une génération interrompue : on le purge et on
+    // regénère (les questions/notions suivent par ON DELETE CASCADE).
+    const { error: purgeErr } = await supabase
+      .from("lumen_lessons")
+      .delete()
+      .eq("id", existing.id);
+    if (purgeErr) throw purgeErr;
   }
 
   const { data: cal } = await supabase

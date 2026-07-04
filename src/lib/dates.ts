@@ -26,6 +26,22 @@ export function mondayOfWeek(dateStr: string): string {
   return addDays(dateStr, delta);
 }
 
+/**
+ * Minuit Europe/Paris de ce jour, en ISO avec le bon offset été/hiver
+ * (échantillonné à 00:00Z, donc correct même les jours de changement d'heure,
+ * qui basculent à 2h/3h du matin).
+ */
+export function parisStartOfDayISO(dateStr: string): string {
+  const tz = new Intl.DateTimeFormat("en-US", {
+    timeZone: "Europe/Paris",
+    timeZoneName: "longOffset",
+  })
+    .formatToParts(new Date(dateStr + "T00:00:00Z"))
+    .find((p) => p.type === "timeZoneName")?.value; // ex. "GMT+02:00"
+  const offset = tz?.replace("GMT", "") || "+01:00";
+  return `${dateStr}T00:00:00${offset}`;
+}
+
 export function formatDateFr(dateStr: string): string {
   return new Intl.DateTimeFormat("fr-FR", {
     weekday: "long",

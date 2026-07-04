@@ -2,7 +2,7 @@ import { redirect } from "next/navigation";
 import { Flame } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { parisToday } from "@/lib/dates";
-import { BottomNav } from "@/components/bottom-nav";
+import { BottomNav, SideNav } from "@/components/bottom-nav";
 import { Logo } from "@/components/logo";
 
 export default async function AppLayout({
@@ -39,9 +39,12 @@ export default async function AppLayout({
   const validatedToday = streak?.last_validated_date === today;
 
   return (
-    <div className="mx-auto flex min-h-dvh w-full max-w-[600px] flex-col">
-      <header className="flex items-center justify-between px-5 pb-2 pt-5">
-        <span className="flex items-center gap-2">
+    <div className="mx-auto flex min-h-dvh w-full max-w-[600px] lg:max-w-[1020px] lg:gap-14 lg:px-8">
+      <SideNav dueCount={dueCount ?? 0} />
+
+      <div className="flex min-h-dvh w-full min-w-0 flex-col lg:max-w-[680px]">
+      <header className="flex items-center justify-between px-5 pb-2 pt-5 lg:justify-end lg:px-1 lg:pt-8">
+        <span className="flex items-center gap-2 lg:hidden">
           <Logo size={22} />
           <span className="font-display text-[25px] text-primary-deep">
             Lumen
@@ -72,7 +75,8 @@ export default async function AppLayout({
         </span>
       </header>
 
-      <main className="flex-1 px-4 pb-32 pt-2">{children}</main>
+      <main className="flex-1 px-4 pb-32 pt-2 lg:px-1 lg:pb-16">{children}</main>
+      </div>
 
       <BottomNav dueCount={dueCount ?? 0} />
     </div>

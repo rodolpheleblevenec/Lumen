@@ -175,7 +175,8 @@ export function LessonFlow({
       const allBase = questions
         .slice(0, 3)
         .every((q, i) => updated[i] === q.answerIdx);
-      if (allBase) {
+      // Les bonus n'existent que si la leçon a bien ses 5 questions
+      if (allBase && questions.length === 5) {
         setPhase("bonus-intro");
         setQIndex(3);
       } else {
@@ -211,7 +212,7 @@ export function LessonFlow({
             <span className="shrink-0 text-xs text-ink-soft">{dateLabel}</span>
           </div>
 
-          <h1 className="font-display mt-4 text-[33px] leading-[1.1] text-balance text-primary-deep">
+          <h1 className="font-display mt-4 text-[33px] leading-[1.1] text-balance text-primary-deep lg:text-[40px]">
             {lesson.title}
           </h1>
 
@@ -257,7 +258,7 @@ export function LessonFlow({
         </header>
 
         <div className="space-y-6 px-1">
-          <p className="text-[17px] font-medium leading-relaxed text-[#514c6e]">
+          <p className="text-[17px] font-medium leading-relaxed text-[#514c6e] lg:text-[19px]">
             {lesson.hook}
           </p>
 
@@ -342,6 +343,7 @@ export function LessonFlow({
   }
 
   /* ─── Quiz ─── */
+  if (!question) return null; // données incomplètes : rien à afficher
   const answered = selected !== null;
   const isBonus = question.tier === "bonus";
   const progressLabel = isBonus
@@ -376,7 +378,7 @@ export function LessonFlow({
         </div>
       </div>
 
-      <h2 className="font-display text-[26px] leading-[1.25] text-primary-deep">
+      <h2 className="font-display text-[26px] leading-[1.25] text-primary-deep lg:text-[30px]">
         {question.prompt}
       </h2>
 

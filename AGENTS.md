@@ -18,8 +18,14 @@ classement hebdo, badges. Bibliothèque des leçons passées + 1 joker de rattra
 ## Stack & conventions
 
 - Next.js 16 App Router + TypeScript + Tailwind 4, `src/` dir, alias `@/*`.
-- **Mobile-first** : une colonne max-width ~600px, barre de navigation inférieure,
-  cibles tactiles ≥ 44px, dark mode auto.
+- **Mobile-first** : une colonne max-width ~600px, nav inférieure en pill flottante,
+  cibles tactiles ≥ 44px. Desktop (≥ lg) : rail latéral (`SideNav`) + colonne ~680px.
+- **Design system « Le Studio »** : indigo `--primary` + corail `--accent` sur crème,
+  Instrument Serif (titres, toujours weight 400) + Archivo (le reste), cartes blanches
+  `shadow-card`, boutons « à pousser » (`push-cta`/`push-cta-primary`/`push-pill`),
+  **zéro emoji dans l'UI** (icônes lucide), marque « Le Levant » (`src/components/logo.tsx`).
+  Tokens dans `globals.css` + `@theme inline`. Dark mode : structure conservée mais
+  non couvert par le redesign (reprend le clair) — à retravailler.
 - Supabase : Auth (Google OAuth + allowlist `lumen_allowed_emails`), Postgres avec RLS.
   Schéma : `supabase/migrations/`. Types générés à venir dans `src/lib/database.types.ts`.
 - **Projet Supabase partagé entre plusieurs apps** (https://baqvosadoijsvvelugmp.supabase.co) :

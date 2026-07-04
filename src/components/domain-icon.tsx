@@ -18,12 +18,13 @@ export const DOMAIN_HUES = [
   { color: "var(--green)", soft: "var(--green-soft)" },
 ] as const;
 
+// Clés = noms exacts de lumen_domain_calendar
 const DOMAIN_STYLES: Record<string, { Icon: LucideIcon; hue: number }> = {
   Histoire: { Icon: Landmark, hue: 0 },
   "Sciences & nature": { Icon: FlaskConical, hue: 1 },
   "Arts & littérature": { Icon: Palette, hue: 2 },
-  Géopolitique: { Icon: Globe, hue: 3 },
-  Philosophie: { Icon: Lightbulb, hue: 0 },
+  "Géopolitique & monde contemporain": { Icon: Globe, hue: 3 },
+  "Philosophie & idées": { Icon: Lightbulb, hue: 0 },
   "Économie & société": { Icon: Coins, hue: 1 },
   "Carte blanche": { Icon: Sparkles, hue: 2 },
 };

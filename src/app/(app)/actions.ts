@@ -97,18 +97,39 @@ export async function completeQuiz(
     ? (baseCorrect + bonusCorrect) * POINTS.catchup
     : baseCorrect * POINTS.base + bonusCorrect * POINTS.bonus;
 
+  // Revendication atomique : seul le premier appel insère la ligne
+  // (PK user_id+lesson_id). Un double appel concurrent perd la course
+  // et ne crédite rien — le ledger ne peut pas être doublé.
   const now = new Date().toISOString();
-  const { error: progressErr } = await supabase
+  const { data: claimed, error: progressErr } = await supabase
     .from("lumen_lesson_progress")
-    .upsert({
-      user_id: userId,
-      lesson_id: lessonId,
-      read_at: now,
-      quiz_completed_at: now,
-      score: points,
-      is_catchup: isCatchup,
-    });
+    .upsert(
+      {
+        user_id: userId,
+        lesson_id: lessonId,
+        read_at: now,
+        quiz_completed_at: now,
+        score: points,
+        is_catchup: isCatchup,
+      },
+      { onConflict: "user_id,lesson_id", ignoreDuplicates: true }
+    )
+    .select("lesson_id");
   if (progressErr) throw progressErr;
+  if (!claimed?.length) {
+    const { data: s } = await supabase
+      .from("lumen_streaks")
+      .select("current")
+      .eq("user_id", userId)
+      .maybeSingle();
+    return {
+      baseCorrect,
+      bonusCorrect,
+      points,
+      streak: s?.current ?? 0,
+      alreadyDone: true,
+    };
+  }
 
   if (points > 0) {
     const ledger = isCatchup
@@ -158,15 +179,15 @@ export async function completeQuiz(
   } else if (
     lesson.date === yesterday &&
     streakRow &&
-    streakRow.last_validated_date !== yesterday &&
-    streakRow.last_validated_date !== today &&
+    // Le joker n'est consommé que s'il sauve vraiment quelque chose :
+    // le dernier jour validé est avant-hier (streak encore rattrapable).
+    // Si le streak est déjà cassé depuis plus longtemps, le rattrapage
+    // donne les points mais garde le joker pour une vraie occasion.
+    streakRow.last_validated_date === addDays(yesterday, -1) &&
     streakRow.joker_used_week_of !== mondayOfWeek(today)
   ) {
     // Joker : rattraper la veille sous 24h sauve le streak (1/semaine)
-    current =
-      streakRow.last_validated_date === addDays(yesterday, -1)
-        ? (streakRow.current ?? 0) + 1
-        : 1;
+    current = (streakRow.current ?? 0) + 1;
     const best = Math.max(current, streakRow.best ?? 0);
     await supabase
       .from("lumen_streaks")
@@ -237,12 +258,14 @@ export async function completeReview(
 
   const byNotion = new Map(cards.map((c) => [c.notion_id, c]));
   const now = new Date().toISOString();
+  let reviewed = 0;
   let correct = 0;
   let acquired = 0;
 
   for (const o of outcomes) {
     const card = byNotion.get(o.notionId);
     if (!card) continue; // carte pas due / déjà acquise : ignorée
+    reviewed++;
     const next = srsAfterReview(card.level, o.correct);
     if (o.correct) correct++;
     if (next.level === 5) acquired++;
@@ -269,7 +292,7 @@ export async function completeReview(
   revalidatePath("/revisions");
   revalidatePath("/classement");
 
-  return { reviewed: outcomes.length, correct, points, acquired };
+  return { reviewed, correct, points, acquired };
 }
 
 /* ─── Notifications push ─── */

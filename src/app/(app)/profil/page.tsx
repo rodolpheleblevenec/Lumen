@@ -122,7 +122,7 @@ export default async function ProfilPage() {
 
       <section className="space-y-3">
         <h2 className="text-[13.5px] font-bold">Badges</h2>
-        <div className="grid grid-cols-2 gap-2.5">
+        <div className="grid grid-cols-2 gap-2.5 lg:grid-cols-3">
           {Object.entries(BADGES).map(([key, meta]) => {
             const has = earned.has(key);
             const { Icon, color, soft, fill } =

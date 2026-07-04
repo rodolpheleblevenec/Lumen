@@ -1,6 +1,6 @@
 import { Flame } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
-import { addDays, mondayOfWeek, parisToday } from "@/lib/dates";
+import { addDays, mondayOfWeek, parisStartOfDayISO, parisToday } from "@/lib/dates";
 import { DOMAIN_HUES } from "@/components/domain-icon";
 
 const RANK_BG = ["var(--primary)", "var(--accent)", "var(--teal)"];
@@ -18,7 +18,7 @@ export default async function ClassementPage() {
       supabase
         .from("lumen_points_ledger")
         .select("user_id, points")
-        .gte("occurred_at", `${monday}T00:00:00+02:00`),
+        .gte("occurred_at", parisStartOfDayISO(monday)),
       supabase.from("lumen_streaks").select("user_id, current, best"),
     ]);
 

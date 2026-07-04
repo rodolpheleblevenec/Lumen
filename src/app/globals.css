@@ -192,6 +192,20 @@ body {
   padding: 0.5rem 1rem;
 }
 
+/* Desktop : lecture plus généreuse */
+@media (min-width: 1024px) {
+  .prose-lesson {
+    font-size: 17px;
+    line-height: 1.8;
+  }
+  .prose-lesson h2 {
+    font-size: 25px;
+  }
+  .prose-lesson blockquote {
+    font-size: 26px;
+  }
+}
+
 /* ── Micro-interactions ── */
 @keyframes shake {
   10%, 90% { transform: translateX(-1px); }

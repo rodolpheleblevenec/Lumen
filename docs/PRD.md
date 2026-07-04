@@ -111,12 +111,12 @@ Temps quotidien total visé : **≤ 10 minutes**.
 
 ## 6. Design mobile-first
 
-- **Navigation par barre inférieure** (pouce) : Aujourd'hui · Révisions (avec pastille du nombre de cartes dues) · Classement · Bibliothèque · Profil.
+- **Navigation par barre inférieure** (pouce) : Aujourd'hui · Révisions (avec pastille du nombre de cartes dues) · Classement · Bibliothèque · Profil. Sur mobile : pill flottante ; sur desktop (≥ 1024px) : rail latéral gauche avec labels complets.
 - Une seule colonne, typographie généreuse (leçon lisible sans zoom), cibles tactiles ≥ 44px.
 - Quiz plein écran, une question à la fois, feedback immédiat animé.
-- Dark mode automatique (prefers-color-scheme).
-- Desktop = même layout centré (max-width ~600px) : aucun développement spécifique.
-- Identité « Lumen » : lumière/clarté — à définir (palette chaude, éviter l'esthétique IA générique).
+- Desktop : colonne de contenu élargie (~680px), typo de lecture agrandie, sidebar sticky — même produit, pas d'app séparée.
+- Dark mode : structure conservée dans les tokens CSS mais **non couvert par le design « Le Studio » pour l'instant** (le clair s'applique partout) — à retravailler.
+- Identité « Lumen » : design system **« Le Studio »** (juillet 2026) — indigo `#4338ca` + corail `#e2543a` sur crème `#f6f3ec`, titres Instrument Serif (400), tout le reste en Archivo, cartes blanches à ombres douces, boutons « à pousser » (ombre dure décalée), zéro emoji dans l'UI (icônes lucide), marque « Le Levant » (soleil levant sur l'horizon). Référence : handoff `Redesign de l'app Lumen/design_handoff_lumen_studio/` (Downloads).
 
 ## 7. Génération de contenu (pipeline IA)
 
@@ -211,4 +211,4 @@ SRS + écran révisions · points & classement hebdo · badges · bibliothèque 
 | Génération nocturne en échec | Retries + leçon de secours + alerte admin |
 | Sujets qui s'épuisent dans un domaine | L'anti-redite reçoit l'historique ; élargir les domaines au besoin |
 | Calendrier thématique exact | Proposition §3 à valider/ajuster en configuration |
-| Identité visuelle (palette, logo) | À définir avant V0 (piste : lumière chaude, sobre) |
+| Identité visuelle (palette, logo) | ✅ Tranché : DS « Le Studio » (indigo/corail sur crème, Instrument Serif + Archivo, logo « Le Levant ») |
