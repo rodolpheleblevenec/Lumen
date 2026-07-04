@@ -1,3 +1,4 @@
+import { Leaf } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { parisToday } from "@/lib/dates";
 import { SRS_MAX_REVIEWS_PER_DAY } from "@/lib/srs";
@@ -31,12 +32,14 @@ export default async function RevisionsPage() {
       .maybeSingle();
 
     return (
-      <div className="animate-fade-up flex flex-col items-center gap-4 pt-20 text-center">
-        <span className="flex h-20 w-20 items-center justify-center rounded-full bg-good-soft text-4xl">
-          🌿
+      <div className="animate-fade-up flex flex-col items-center gap-4 pt-16 text-center">
+        <span className="flex h-24 w-24 items-center justify-center rounded-full bg-good-soft">
+          <Leaf size={38} className="text-good" aria-hidden />
         </span>
-        <h1 className="font-display text-2xl font-semibold">Rien à réviser</h1>
-        <p className="max-w-xs text-balance text-ink-soft">
+        <h1 className="font-display text-[34px] text-primary-deep">
+          Rien à réviser
+        </h1>
+        <p className="max-w-xs text-[15px] text-balance text-ink-soft">
           {next
             ? `Tes prochaines cartes reviendront le ${new Intl.DateTimeFormat(
                 "fr-FR",

@@ -17,12 +17,17 @@ export const POINTS = {
   catchup: 5,
 } as const;
 
-export const BADGES: Record<string, { icon: string; label: string }> = {
-  perfect_quiz: { icon: "⭐", label: "Premier sans-faute (70 pts)" },
-  streak_7: { icon: "🔥", label: "7 jours d'affilée" },
-  streak_30: { icon: "⚡", label: "30 jours d'affilée" },
-  streak_100: { icon: "💎", label: "100 jours d'affilée" },
-  streak_365: { icon: "👑", label: "Une année entière" },
-  notions_50: { icon: "🧠", label: "50 notions acquises" },
-  domain_master: { icon: "🎓", label: "Un domaine maîtrisé" },
+// L'icône est résolue côté UI (lucide) — voir la page Profil.
+// `goal` permet d'afficher la progression vers le prochain badge.
+export const BADGES: Record<
+  string,
+  { label: string; goal?: { kind: "streak" | "notions"; target: number } }
+> = {
+  perfect_quiz: { label: "Premier sans-faute (70 pts)" },
+  streak_7: { label: "7 jours d'affilée", goal: { kind: "streak", target: 7 } },
+  streak_30: { label: "30 jours d'affilée", goal: { kind: "streak", target: 30 } },
+  streak_100: { label: "100 jours d'affilée", goal: { kind: "streak", target: 100 } },
+  streak_365: { label: "Une année entière", goal: { kind: "streak", target: 365 } },
+  notions_50: { label: "50 notions acquises", goal: { kind: "notions", target: 50 } },
+  domain_master: { label: "Un domaine maîtrisé" },
 };

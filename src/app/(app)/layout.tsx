@@ -3,6 +3,7 @@ import { Flame } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { parisToday } from "@/lib/dates";
 import { BottomNav } from "@/components/bottom-nav";
+import { Logo } from "@/components/logo";
 
 export default async function AppLayout({
   children,
@@ -40,15 +41,21 @@ export default async function AppLayout({
   return (
     <div className="mx-auto flex min-h-dvh w-full max-w-[600px] flex-col">
       <header className="flex items-center justify-between px-5 pb-2 pt-5">
-        <span className="font-display text-[22px] font-semibold tracking-tight">
-          Lumen
+        <span className="flex items-center gap-2">
+          <Logo size={22} />
+          <span className="font-display text-[25px] text-primary-deep">
+            Lumen
+          </span>
         </span>
         <span
-          className={`flex items-center gap-1.5 rounded-full px-3 py-1 text-sm font-semibold tabular-nums ${
-            validatedToday
-              ? "bg-sun text-on-sun shadow-sm"
-              : "bg-card-soft text-ink-soft"
+          className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-bold tabular-nums text-white ${
+            validatedToday ? "push-pill-accent" : "push-pill bg-primary"
           }`}
+          style={
+            validatedToday
+              ? { background: "linear-gradient(135deg,#e2543a,#c73d24)" }
+              : undefined
+          }
           title={
             validatedToday
               ? "Streak validé aujourd'hui"
@@ -56,16 +63,16 @@ export default async function AppLayout({
           }
         >
           <Flame
-            size={15}
+            size={14}
             className={validatedToday ? "animate-flame" : ""}
-            fill={validatedToday ? "currentColor" : "none"}
+            fill="currentColor"
             aria-hidden
           />
           {streak?.current ?? 0}
         </span>
       </header>
 
-      <main className="flex-1 px-5 pb-28 pt-2">{children}</main>
+      <main className="flex-1 px-4 pb-32 pt-2">{children}</main>
 
       <BottomNav dueCount={dueCount ?? 0} />
     </div>

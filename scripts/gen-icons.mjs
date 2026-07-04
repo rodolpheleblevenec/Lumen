@@ -1,20 +1,13 @@
-// Génère les icônes PWA depuis un SVG soleil (npx node scripts/gen-icons.mjs)
+// Génère les icônes PWA depuis la marque « Le Levant » (npx node scripts/gen-icons.mjs)
+// Tuile indigo, soleil levant : demi-cercle corail + horizon et rayons crème.
 import sharp from "sharp";
 import { mkdirSync } from "fs";
 
-const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512">
-  <rect width="512" height="512" fill="#fbbf24"/>
-  <circle cx="256" cy="256" r="104" fill="#fffbeb"/>
-  <g stroke="#fffbeb" stroke-width="30" stroke-linecap="round">
-    <line x1="256" y1="72"  x2="256" y2="122"/>
-    <line x1="256" y1="390" x2="256" y2="440"/>
-    <line x1="72"  y1="256" x2="122" y2="256"/>
-    <line x1="390" y1="256" x2="440" y2="256"/>
-    <line x1="126" y1="126" x2="161" y2="161"/>
-    <line x1="351" y1="351" x2="386" y2="386"/>
-    <line x1="126" y1="386" x2="161" y2="351"/>
-    <line x1="351" y1="161" x2="386" y2="126"/>
-  </g>
+const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="128" fill="#4338ca"/>
+  <path d="M128 320a128 128 0 0 1 256 0Z" fill="#e2543a"/>
+  <path d="M75 320h362" stroke="#f6f3ec" stroke-width="34" stroke-linecap="round"/>
+  <path d="M256 90v49M124 145l36 36M388 145l-36 36" stroke="#f6f3ec" stroke-width="34" stroke-linecap="round"/>
 </svg>`;
 
 mkdirSync("public/icons", { recursive: true });

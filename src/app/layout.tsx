@@ -1,29 +1,21 @@
 import type { Metadata, Viewport } from "next";
-import { Geist, Geist_Mono, Fraunces, Literata } from "next/font/google";
+import { Archivo, Instrument_Serif } from "next/font/google";
 import { PwaRegister } from "@/components/pwa-register";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+// UI, corps de lecture, boutons, labels : tout sauf les titres
+const archivo = Archivo({
+  variable: "--font-archivo",
   subsets: ["latin"],
+  style: ["normal", "italic"],
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+// Display : titres de leçons, h1/h2 d'écrans, grands chiffres, citations
+const instrumentSerif = Instrument_Serif({
+  variable: "--font-instrument",
   subsets: ["latin"],
-});
-
-// Display : titres de leçons, grands chiffres
-const fraunces = Fraunces({
-  variable: "--font-fraunces",
-  subsets: ["latin"],
-  axes: ["opsz", "SOFT", "WONK"],
-});
-
-// Lecture longue : corps des leçons
-const literata = Literata({
-  variable: "--font-literata",
-  subsets: ["latin"],
+  weight: "400",
+  style: ["normal", "italic"],
 });
 
 export const metadata: Metadata = {
@@ -32,10 +24,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#fbf7ee" },
-    { media: "(prefers-color-scheme: dark)", color: "#171209" },
-  ],
+  themeColor: "#f6f3ec",
   width: "device-width",
   initialScale: 1,
 };
@@ -48,9 +37,9 @@ export default function RootLayout({
   return (
     <html
       lang="fr"
-      className={`${geistSans.variable} ${geistMono.variable} ${fraunces.variable} ${literata.variable} h-full antialiased`}
+      className={`${archivo.variable} ${instrumentSerif.variable} h-full antialiased`}
     >
-      <body className="sunrise min-h-full flex flex-col">
+      <body className="min-h-full flex flex-col">
         <PwaRegister />
         {children}
       </body>

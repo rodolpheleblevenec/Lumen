@@ -7,8 +7,8 @@ export default function manifest(): MetadataRoute.Manifest {
     description: "5 minutes par jour pour une culture générale qui reste.",
     start_url: "/",
     display: "standalone",
-    background_color: "#fffbeb",
-    theme_color: "#fbbf24",
+    background_color: "#f6f3ec",
+    theme_color: "#f6f3ec",
     lang: "fr",
     icons: [
       { src: "/icons/icon-192.png", sizes: "192x192", type: "image/png" },

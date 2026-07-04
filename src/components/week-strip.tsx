@@ -17,42 +17,45 @@ export function WeekStrip({
   const validated = new Set(validatedDates);
 
   return (
-    <div className="flex items-center justify-between rounded-2xl border border-line bg-card px-4 py-3">
-      <div className="flex gap-2.5">
+    <div className="shadow-card flex items-center justify-between rounded-[18px] bg-card px-4 py-3">
+      <div className="flex gap-2">
         {DAY_LABELS.map((label, i) => {
           const date = addDays(monday, i);
           const isToday = date === today;
           const isFuture = date > today;
           const done = validated.has(date);
           return (
-            <div key={date} className="flex flex-col items-center gap-1">
-              <span
-                className={`flex h-7 w-7 items-center justify-center rounded-full text-[11px] font-semibold ${
-                  done
-                    ? "bg-sun text-on-sun"
-                    : isToday
-                      ? "border-2 border-accent text-accent"
-                      : isFuture
-                        ? "border border-line text-ink-soft/50"
-                        : "border border-line bg-card-soft text-ink-soft"
-                }`}
-                aria-label={done ? `${date} validé` : date}
-              >
-                {done ? "✓" : label}
-              </span>
-            </div>
+            <span
+              key={date}
+              className={`flex h-7 w-7 items-center justify-center rounded-full text-[11px] font-bold ${
+                done
+                  ? "bg-primary text-white"
+                  : isToday
+                    ? "border-[2.5px] border-accent text-accent"
+                    : isFuture
+                      ? "bg-line-soft text-ink-faint"
+                      : "border border-line text-ink-faint"
+              }`}
+              aria-label={done ? `${date} validé` : date}
+            >
+              {label}
+            </span>
           );
         })}
       </div>
       <span
-        className="text-lg"
+        className={`text-right text-[9px] font-bold uppercase leading-snug tracking-[0.12em] ${
+          jokerAvailable ? "text-primary" : "text-ink-faint"
+        }`}
         title={
           jokerAvailable
             ? "Joker disponible : rattraper la leçon d'hier sauve ton streak"
             : "Joker déjà utilisé cette semaine"
         }
       >
-        {jokerAvailable ? "🃏" : <span className="opacity-30 grayscale">🃏</span>}
+        {validated.size}/7
+        <br />
+        {jokerAvailable ? "Joker dispo" : "Joker utilisé"}
       </span>
     </div>
   );

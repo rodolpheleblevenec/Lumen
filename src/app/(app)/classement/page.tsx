@@ -1,6 +1,9 @@
 import { Flame } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { addDays, mondayOfWeek, parisToday } from "@/lib/dates";
+import { DOMAIN_HUES } from "@/components/domain-icon";
+
+const RANK_BG = ["var(--primary)", "var(--accent)", "var(--teal)"];
 
 export default async function ClassementPage() {
   const supabase = await createClient();
@@ -33,7 +36,6 @@ export default async function ClassementPage() {
     }))
     .sort((a, b) => b.points - a.points);
 
-  const medals = ["🥇", "🥈", "🥉"];
   const daysLeft = Math.max(
     1,
     Math.round(
@@ -46,54 +48,78 @@ export default async function ClassementPage() {
   return (
     <div className="animate-fade-up space-y-4">
       <div>
-        <h1 className="font-display text-2xl font-semibold">Classement</h1>
-        <p className="mt-1 text-sm text-ink-soft">
+        <h1 className="font-display text-[30px] text-primary-deep">
+          Classement
+        </h1>
+        <p className="mt-1 text-[12.5px] text-ink-soft">
           Remise à zéro lundi —{" "}
           {daysLeft === 1 ? "dernier jour !" : `${daysLeft} jours restants`}.
         </p>
       </div>
 
-      <ol className="space-y-2">
+      <ol className="space-y-2.5">
         {ranking.map((p, i) => {
           const isMe = p.id === me;
+          const hue = DOMAIN_HUES[i % DOMAIN_HUES.length];
           return (
             <li
               key={p.id}
-              className={`flex items-center gap-3 rounded-2xl border p-3 ${
+              className={`flex items-center gap-3 rounded-[18px] p-3 ${
                 isMe
-                  ? "border-accent/40 bg-accent-soft/50"
-                  : "border-line bg-card"
+                  ? "border-2 border-primary bg-card-tint"
+                  : "shadow-card bg-card"
               }`}
             >
-              <span className="w-8 text-center text-lg">
-                {medals[i] ?? `${i + 1}.`}
+              <span
+                className="flex h-[26px] w-[26px] shrink-0 items-center justify-center rounded-full text-[13px] font-bold"
+                style={
+                  i < 3
+                    ? { background: RANK_BG[i], color: "#fff" }
+                    : { color: "var(--ink-faint)" }
+                }
+              >
+                {i + 1}
               </span>
               {p.avatar_url ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
                   src={p.avatar_url}
                   alt=""
-                  className="h-9 w-9 rounded-full"
+                  className="h-[38px] w-[38px] rounded-full"
                   referrerPolicy="no-referrer"
                 />
               ) : (
-                <span className="flex h-9 w-9 items-center justify-center rounded-full bg-accent-soft font-semibold text-accent-strong">
+                <span
+                  className="flex h-[38px] w-[38px] items-center justify-center rounded-full font-semibold"
+                  style={{ background: hue.soft, color: hue.color }}
+                >
                   {p.display_name.charAt(0).toUpperCase()}
                 </span>
               )}
-              <span className="flex-1 truncate font-medium">
-                {p.display_name}
-                {isMe && (
-                  <span className="ml-1.5 text-xs font-normal text-ink-soft">
-                    (toi)
-                  </span>
-                )}
+              <span className="min-w-0 flex-1">
+                <span
+                  className={`block truncate text-[15px] ${
+                    isMe ? "font-bold" : "font-semibold"
+                  }`}
+                >
+                  {p.display_name}
+                  {isMe && (
+                    <span className="ml-1.5 text-[11px] font-normal text-ink-soft">
+                      (toi)
+                    </span>
+                  )}
+                </span>
+                <span className="flex items-center gap-1 text-xs text-ink-faint">
+                  <Flame size={13} aria-hidden /> {p.streak}
+                </span>
               </span>
-              <span className="flex items-center gap-1 text-sm text-ink-soft">
-                <Flame size={14} aria-hidden /> {p.streak}
-              </span>
-              <span className="w-16 text-right font-display font-semibold tabular-nums">
-                {p.points} pts
+              <span className="text-right">
+                <span className="font-display text-[19px] tabular-nums text-primary-deep">
+                  {p.points}
+                </span>{" "}
+                <span className="text-[9px] font-bold uppercase tracking-[0.1em] text-ink-faint">
+                  pts
+                </span>
               </span>
             </li>
           );

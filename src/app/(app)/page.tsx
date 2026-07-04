@@ -68,13 +68,13 @@ export default async function TodayPage() {
           jokerAvailable={jokerAvailable}
         />
         <div className="flex flex-col items-center gap-4 pt-14 text-center">
-          <span className="flex h-20 w-20 items-center justify-center rounded-full bg-card-soft">
-            <MoonStar size={34} className="text-ink-soft" aria-hidden />
+          <span className="flex h-24 w-24 items-center justify-center rounded-full bg-primary-soft">
+            <MoonStar size={38} className="text-primary" aria-hidden />
           </span>
-          <h1 className="font-display text-2xl font-semibold">
+          <h1 className="font-display text-[34px] text-primary-deep">
             Pas encore de leçon
           </h1>
-          <p className="max-w-xs text-balance text-ink-soft">
+          <p className="max-w-xs text-[15px] text-balance text-ink-soft">
             La leçon du jour ({cal?.domain ?? "…"}) n&apos;a pas encore été
             générée. Repasse un peu plus tard !
           </p>

@@ -1,7 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState, useSyncExternalStore } from "react";
 import { Sun, Repeat2, Flame } from "lucide-react";
+
+const emptySubscribe = () => () => {};
 
 const SLIDES = [
   {
@@ -17,25 +19,30 @@ const SLIDES = [
   {
     Icon: Flame,
     title: "Le streak, entre proches",
-    body: "Terminer le quiz du jour entretient ton streak 🔥 et te fait grimper au classement de la semaine. Un jour raté ? Rattrape la leçon d'hier avec ton joker 🃏 (1 par semaine).",
+    body: "Terminer le quiz du jour entretient ton streak et te fait grimper au classement de la semaine. Un jour raté ? Rattrape la leçon d'hier avec ton joker (1 par semaine).",
   },
 ] as const;
 
 const STORAGE_KEY = "lumen_onboarded_v1";
 
 export function Onboarding() {
-  const [visible, setVisible] = useState(false);
+  const [dismissed, setDismissed] = useState(false);
   const [slide, setSlide] = useState(0);
 
-  useEffect(() => {
-    try {
-      if (!localStorage.getItem(STORAGE_KEY)) setVisible(true);
-    } catch {
-      /* stockage indisponible : on n'insiste pas */
-    }
-  }, []);
+  // Déjà vu ? Lu côté client uniquement (SSR : considéré comme vu).
+  const onboarded = useSyncExternalStore(
+    emptySubscribe,
+    () => {
+      try {
+        return Boolean(localStorage.getItem(STORAGE_KEY));
+      } catch {
+        return true; // stockage indisponible : on n'insiste pas
+      }
+    },
+    () => true
+  );
 
-  if (!visible) return null;
+  if (onboarded || dismissed) return null;
 
   function close() {
     try {
@@ -43,7 +50,7 @@ export function Onboarding() {
     } catch {
       /* idem */
     }
-    setVisible(false);
+    setDismissed(true);
   }
 
   const { Icon, title, body } = SLIDES[slide];
@@ -51,21 +58,22 @@ export function Onboarding() {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-end justify-center bg-ink/40 backdrop-blur-sm sm:items-center"
+      className="fixed inset-0 z-50 flex items-end justify-center sm:items-center"
+      style={{ background: "rgba(34,32,58,.42)" }}
       role="dialog"
       aria-modal="true"
       aria-label="Bienvenue sur Lumen"
     >
       <div
         key={slide}
-        className="animate-fade-up mx-auto w-full max-w-[440px] space-y-5 rounded-t-3xl bg-card p-6 pb-8 shadow-xl sm:rounded-3xl"
+        className="animate-fade-up mx-auto w-full max-w-[440px] space-y-5 rounded-t-[26px] bg-card p-6 pb-8 shadow-xl sm:rounded-[26px]"
       >
-        <span className="flex h-14 w-14 items-center justify-center rounded-full bg-accent-soft">
-          <Icon size={26} className="text-accent-strong" aria-hidden />
+        <span className="flex h-14 w-14 items-center justify-center rounded-full bg-primary-soft">
+          <Icon size={26} className="text-primary" aria-hidden />
         </span>
         <div className="space-y-2">
-          <h2 className="font-display text-[22px] font-semibold">{title}</h2>
-          <p className="leading-relaxed text-ink-soft">{body}</p>
+          <h2 className="font-display text-[26px] text-primary-deep">{title}</h2>
+          <p className="text-sm leading-relaxed text-ink-soft">{body}</p>
         </div>
 
         <div className="flex items-center justify-between pt-1">
@@ -74,7 +82,7 @@ export function Onboarding() {
               <span
                 key={i}
                 className={`h-1.5 rounded-full transition-all ${
-                  i === slide ? "w-6 bg-accent" : "w-1.5 bg-line"
+                  i === slide ? "w-[22px] bg-primary" : "w-1.5 bg-line"
                 }`}
               />
             ))}
@@ -87,9 +95,9 @@ export function Onboarding() {
             )}
             <button
               onClick={() => (last ? close() : setSlide(slide + 1))}
-              className="glow-accent min-h-11 rounded-full bg-accent px-6 py-2.5 font-semibold text-on-accent transition active:scale-95"
+              className="push-cta min-h-11 rounded-full bg-accent px-6 py-2.5 text-xs font-bold uppercase tracking-[0.14em] text-white"
             >
-              {last ? "C'est parti ☀️" : "Suivant"}
+              {last ? "C'est parti" : "Suivant"}
             </button>
           </div>
         </div>

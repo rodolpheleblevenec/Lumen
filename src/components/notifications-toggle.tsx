@@ -83,7 +83,7 @@ export function NotificationsToggle() {
 
   if (state === "unsupported") {
     return (
-      <p className="text-sm text-stone-500 dark:text-stone-400">
+      <p className="text-sm text-ink-soft">
         Notifications non supportées ici. Sur iPhone : ajoute d&apos;abord
         Lumen à l&apos;écran d&apos;accueil (Partager → Sur l&apos;écran
         d&apos;accueil).
@@ -93,7 +93,7 @@ export function NotificationsToggle() {
 
   if (state === "denied") {
     return (
-      <p className="text-sm text-stone-500 dark:text-stone-400">
+      <p className="text-sm text-ink-soft">
         Notifications bloquées — réactive-les dans les réglages du
         navigateur.
       </p>
@@ -105,17 +105,29 @@ export function NotificationsToggle() {
     <button
       onClick={on ? disable : enable}
       disabled={state === "busy"}
-      className={`flex min-h-12 w-full items-center justify-between rounded-2xl p-4 shadow-sm transition active:scale-[0.99] disabled:opacity-60 ${
-        on
-          ? "bg-orange-100 dark:bg-orange-950/60"
-          : "bg-white dark:bg-stone-900"
-      }`}
+      role="switch"
+      aria-checked={on}
+      className="shadow-card flex min-h-12 w-full items-center justify-between gap-4 rounded-[18px] bg-card p-4 text-left transition disabled:opacity-60"
     >
-      <span className="font-medium">
-        ☀️ Rappel quotidien de la leçon
+      <span>
+        <span className="block text-[13.5px] font-bold">
+          Rappel quotidien de la leçon
+        </span>
+        <span className="block text-xs text-ink-soft">
+          Chaque matin à 8h, ne rate pas ton streak.
+        </span>
       </span>
-      <span className="text-sm font-semibold">
-        {state === "busy" ? "…" : on ? "Activé" : "Activer"}
+      <span
+        className={`relative h-[26px] w-[46px] shrink-0 rounded-full transition-colors ${
+          on ? "bg-primary" : "bg-line"
+        }`}
+        aria-hidden
+      >
+        <span
+          className={`absolute top-[3px] h-5 w-5 rounded-full bg-white shadow-sm transition-all ${
+            on ? "left-[23px]" : "left-[3px]"
+          }`}
+        />
       </span>
     </button>
   );
