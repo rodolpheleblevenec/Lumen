@@ -46,7 +46,10 @@ classement hebdo, badges. Bibliothèque des leçons passées + 1 joker de rattra
   « Creuser » (`lumen_deep_dives`, cache partagé au cercle) et audio TTS
   (`gpt-4o-mini-tts`, bucket public `lumen-audio`, généré au premier clic). Prod : Cloud Run `lumen`, projet GCP `lumen-501322`, europe-west1 —
   **https://lumen.rodserver.fr** (CNAME OVH → ghs.googlehosted.com, alias run.app).
-  Déploiement manuel par `gcloud run deploy lumen --source .` (pas de trigger auto sur push).
+  **CI/CD : chaque push sur `main` déploie en prod** (`.github/workflows/deploy.yml`,
+  auth par Workload Identity Federation → SA `github-deployer`, lint+build en
+  barrage avant déploiement). Déploiement manuel possible :
+  `gcloud run deploy lumen --source .`.
 - Contenu et UI en **français**.
 
 ## Commandes

@@ -1,0 +1,58 @@
+# CI/CD : chaque push sur main → lint + build, puis déploiement Cloud Run.
+# Auth GCP sans clé : Workload Identity Federation (pool "github",
+# provider "github-oidc", limité à ce repo) → SA github-deployer.
+name: Déploiement prod
+
+on:
+  push:
+    branches: [main]
+
+concurrency:
+  group: deploy-prod
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  id-token: write # jeton OIDC pour la fédération d'identité GCP
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Lint + build (barrage qualité)
+        run: |
+          npm ci
+          npm run lint
+          npm run build
+        env:
+          # Le build a besoin des valeurs publiques (aussi dans .env.production)
+          NEXT_TELEMETRY_DISABLED: "1"
+
+      - name: Auth GCP (Workload Identity Federation)
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: projects/429795756050/locations/global/workloadIdentityPools/github/providers/github-oidc
+          service_account: github-deployer@lumen-501322.iam.gserviceaccount.com
+
+      - uses: google-github-actions/setup-gcloud@v2
+
+      - name: Déployer sur Cloud Run
+        run: |
+          gcloud run deploy lumen \
+            --source . \
+            --project lumen-501322 \
+            --region europe-west1 \
+            --quiet
+
+      - name: Vérifier la prod
+        run: |
+          code=$(curl -s -o /dev/null -w "%{http_code}" https://lumen.rodserver.fr/login)
+          echo "GET /login -> $code"
+          test "$code" = "200"
