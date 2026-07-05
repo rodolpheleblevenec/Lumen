@@ -23,7 +23,7 @@ Ce que Lumen fait mieux que les apps du marché (Sophia, Sapio) :
 ## 2. Utilisateurs
 
 - **Cercle privé** : Rodolphe + proches (~5-15 personnes), francophones, sur mobile principalement.
-- Accès sur invitation implicite : l'app n'est pas référencée ; **connexion Google OAuth** (un clic, zéro mot de passe). Une allowlist d'emails contrôle qui peut entrer.
+- Accès **ouvert depuis juillet 2026** : l'app n'est pas référencée (invitation implicite par le lien), **connexion Google OAuth** (un clic, zéro mot de passe) — tout compte Google qui se connecte devient membre, le profil est créé au premier accès. (L'allowlist historique a été retirée, migration 0008.)
 
 ## 3. Décisions produit (arbitrées)
 
@@ -91,8 +91,8 @@ Ce que Lumen fait mieux que les apps du marché (Sophia, Sapio) :
 - iOS : notifications supportées pour les PWA ajoutées à l'écran d'accueil (iOS 16.4+).
 
 ### 4.7 Comptes & groupe
-- Google OAuth via Supabase. Allowlist d'emails gérée en base (table `lumen_allowed_emails`).
-- Le projet Supabase est **partagé avec d'autres apps** : l'allowlist ne bloque pas la création du compte auth (pool commun) — un connecté non invité voit un écran « non invité » car il n'a pas de profil Lumen.
+- Google OAuth via Supabase, accès ouvert : le profil Lumen (`lumen_profiles` + `lumen_streaks`) est créé par l'app au premier accès (policies insert-own, migration 0008).
+- Le projet Supabase est **partagé avec d'autres apps** (pool auth commun) : pas de trigger global sur `auth.users` — être `authenticated` ne suffit pas dans les policies, l'appartenance passe par `lumen_is_member()` (existence du profil).
 - Profil minimal : prénom affiché, avatar Google, préférences de notification.
 
 ## 5. Parcours utilisateur type (mobile)
@@ -190,7 +190,6 @@ Projet Supabase **partagé entre plusieurs apps** → toutes les tables (et futu
 
 ```
 lumen_profiles           (id → auth.users, display_name, avatar_url, notif_time, timezone)
-lumen_allowed_emails     (email)
 lumen_lessons            (id, date UNIQUE, domain, title, hook, body_md, anecdote, flex_phrase, status)
 lumen_questions          (id, lesson_id, tier: base|bonus, prompt, choices jsonb, answer_idx, explanation)
 lumen_notions            (id, lesson_id, question_id, label)
@@ -208,7 +207,7 @@ RLS : chaque utilisateur ne lit/écrit que ses données ; le contenu (`lumen_les
 
 ## 9. Écrans (MVP)
 
-1. **Connexion** — logo + bouton Google (écran « non invité » si l'email est hors allowlist).
+1. **Connexion** — logo + bouton Google (profil créé automatiquement au premier accès).
 2. **Aujourd'hui** — leçon du jour (ou état « déjà validé ✅ » avec score et lien révisions).
 3. **Quiz** — plein écran, question par question, écran de score final (points, streak, cartes créées).
 4. **Révisions** — session de cartes dues, même UX que le quiz.

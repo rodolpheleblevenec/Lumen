@@ -14,11 +14,41 @@ export default async function AppLayout({
   if (!claims) redirect("/login");
 
   // Le pool auth est partagé avec d'autres apps : membre = profil Lumen.
-  const { data: profile } = await supabase
+  // Accès ouvert : au premier passage, on crée le profil (self-serve).
+  let { data: profile } = await supabase
     .from("lumen_profiles")
     .select("id, display_name, avatar_url")
     .eq("id", claims.sub)
     .maybeSingle();
+  if (!profile) {
+    const meta = (claims.user_metadata ?? {}) as Record<string, unknown>;
+    const displayName =
+      (typeof meta.full_name === "string" && meta.full_name) ||
+      (typeof meta.name === "string" && meta.name) ||
+      String(claims.email ?? "").split("@")[0] ||
+      "Membre";
+    const avatarUrl =
+      (typeof meta.avatar_url === "string" && meta.avatar_url) ||
+      (typeof meta.picture === "string" && meta.picture) ||
+      null;
+    await supabase
+      .from("lumen_profiles")
+      .upsert(
+        { id: claims.sub, display_name: displayName, avatar_url: avatarUrl },
+        { onConflict: "id", ignoreDuplicates: true }
+      );
+    await supabase
+      .from("lumen_streaks")
+      .upsert(
+        { user_id: claims.sub },
+        { onConflict: "user_id", ignoreDuplicates: true }
+      );
+    ({ data: profile } = await supabase
+      .from("lumen_profiles")
+      .select("id, display_name, avatar_url")
+      .eq("id", claims.sub)
+      .maybeSingle());
+  }
   if (!profile) redirect("/non-invite");
 
   const today = parisToday();

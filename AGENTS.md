@@ -28,8 +28,10 @@ classement hebdo, badges. Bibliothèque des leçons passées + 1 joker de rattra
   **zéro emoji dans l'UI** (icônes lucide), marque « Le Levant » (`src/components/logo.tsx`).
   Tokens dans `globals.css` + `@theme inline`. Dark mode : structure conservée mais
   non couvert par le redesign (reprend le clair) — à retravailler.
-- Supabase : Auth (Google OAuth + allowlist `lumen_allowed_emails`), Postgres avec RLS.
-  Schéma : `supabase/migrations/`. Types générés à venir dans `src/lib/database.types.ts`.
+- Supabase : Auth Google OAuth **ouverte** (plus d'allowlist depuis la
+  migration 0008) : le profil `lumen_profiles` + `lumen_streaks` est créé
+  par l'app au premier accès (self-serve, policies insert-own). Postgres
+  avec RLS. Schéma : `supabase/migrations/`. Types dans `src/lib/database.types.ts`.
 - **Projet Supabase partagé entre plusieurs apps** (https://baqvosadoijsvvelugmp.supabase.co) :
   préfixer `lumen_` toute table, fonction SQL et edge function. Ne jamais bloquer
   auth.users (pool commun). L'appartenance au cercle se vérifie via `lumen_is_member()` /

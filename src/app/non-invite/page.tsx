@@ -22,13 +22,12 @@ export default async function NonInvitePage() {
         <Lock size={38} className="text-primary" aria-hidden />
       </span>
       <h1 className="font-display text-[34px] text-primary-deep">
-        Pas encore invité
+        Un petit couac
       </h1>
       <p className="max-w-sm text-balance text-ink-soft">
-        Lumen est un cercle privé. Ton compte{" "}
+        Impossible de préparer le profil de{" "}
         <span className="font-medium">{String(claims.email ?? "")}</span>{" "}
-        n&apos;est pas dans la liste des invités. Demande à Rodolphe de
-        t&apos;ajouter !
+        pour l&apos;instant. Déconnecte-toi et réessaie dans un instant.
       </p>
       <form action="/auth/signout" method="post">
         <button
