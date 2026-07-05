@@ -1,7 +1,9 @@
-import { Flame } from "lucide-react";
+import Link from "next/link";
+import { Flame, Swords } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { addDays, mondayOfWeek, parisStartOfDayISO, parisToday } from "@/lib/dates";
 import { DOMAIN_HUES } from "@/components/domain-icon";
+import type { DuelResultSide } from "@/server/duels";
 
 const RANK_BG = ["var(--primary)", "var(--accent)", "var(--teal)"];
 
@@ -26,6 +28,12 @@ export default async function ClassementPage() {
         .not("quiz_completed_at", "is", null),
     ]);
 
+  // Mes duels (RLS : je ne vois que ceux qui me concernent)
+  const { data: duels } = await supabase
+    .from("lumen_duels")
+    .select("*")
+    .order("created_at", { ascending: false });
+
   const totals = new Map<string, number>();
   for (const p of points ?? []) {
     totals.set(p.user_id, (totals.get(p.user_id) ?? 0) + p.points);
@@ -48,6 +56,37 @@ export default async function ClassementPage() {
         86_400_000
     )
   );
+
+  const nameOf = new Map((profiles ?? []).map((p) => [p.id, p.display_name]));
+  const now = new Date().toISOString();
+  const toPlay = (duels ?? []).filter((d) => {
+    const myRes = d.challenger === me ? d.challenger_result : d.opponent_result;
+    return d.status === "pending" && !myRes && d.expires_at > now;
+  });
+  const waiting = (duels ?? []).filter((d) => {
+    const myRes = d.challenger === me ? d.challenger_result : d.opponent_result;
+    return d.status === "pending" && Boolean(myRes) && d.expires_at > now;
+  });
+  const finished = (duels ?? [])
+    .filter((d) => d.status !== "pending" || d.expires_at <= now)
+    .slice(0, 5);
+
+  // Face-à-face : bilan victoires par adversaire
+  const headToHead = new Map<string, { wins: number; losses: number }>();
+  for (const d of duels ?? []) {
+    if (!d.winner) continue;
+    const other = d.challenger === me ? d.opponent : d.challenger;
+    const rec = headToHead.get(other) ?? { wins: 0, losses: 0 };
+    if (d.winner === me) rec.wins++;
+    else rec.losses++;
+    headToHead.set(other, rec);
+  }
+
+  const duelScore = (d: (NonNullable<typeof duels>)[number]) => {
+    const myRes = (d.challenger === me ? d.challenger_result : d.opponent_result) as DuelResultSide | null;
+    const theirRes = (d.challenger === me ? d.opponent_result : d.challenger_result) as DuelResultSide | null;
+    return `${myRes?.score ?? "–"}-${theirRes?.score ?? "–"}`;
+  };
 
   const weekPoints = [...totals.values()].reduce((a, b) => a + b, 0);
   const bestStreak = Math.max(0, ...(streaks ?? []).map((s) => s.best ?? 0));
@@ -151,10 +190,97 @@ export default async function ClassementPage() {
                   pts
                 </span>
               </span>
+              {!isMe && (
+                <Link
+                  href={`/duel/nouveau?vs=${p.id}`}
+                  aria-label={`Défier ${p.display_name}`}
+                  title={`Défier ${p.display_name}`}
+                  className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-accent-soft text-accent transition active:scale-90"
+                >
+                  <Swords size={15} aria-hidden />
+                </Link>
+              )}
             </li>
           );
         })}
       </ol>
+
+      {(toPlay.length > 0 || waiting.length > 0 || finished.length > 0) && (
+        <section className="space-y-2.5 pt-2">
+          <h2 className="flex items-center gap-2 text-[13.5px] font-bold">
+            <Swords size={15} className="text-accent" aria-hidden /> Duels
+          </h2>
+
+          {toPlay.map((d) => (
+            <Link
+              key={d.id}
+              href={`/duel/${d.id}`}
+              className="hover-lift flex items-center justify-between gap-3 rounded-[18px] border-2 border-accent bg-card p-3.5"
+            >
+              <span className="text-sm font-semibold">
+                {nameOf.get(d.challenger === me ? d.opponent : d.challenger)} te
+                défie !
+              </span>
+              <span className="shrink-0 rounded-full bg-accent px-3.5 py-1.5 text-[10px] font-bold uppercase tracking-[0.14em] text-white">
+                Jouer
+              </span>
+            </Link>
+          ))}
+
+          {waiting.map((d) => (
+            <Link
+              key={d.id}
+              href={`/duel/${d.id}`}
+              className="hover-lift shadow-card flex items-center justify-between gap-3 rounded-[18px] bg-card p-3.5"
+            >
+              <span className="text-sm text-ink-soft">
+                En attente de{" "}
+                {nameOf.get(d.challenger === me ? d.opponent : d.challenger)}…
+              </span>
+            </Link>
+          ))}
+
+          {finished.map((d) => {
+            const other = d.challenger === me ? d.opponent : d.challenger;
+            const won = d.winner === me;
+            const drawn = d.status === "completed" && !d.winner;
+            return (
+              <Link
+                key={d.id}
+                href={`/duel/${d.id}`}
+                className="hover-lift shadow-card flex items-center justify-between gap-3 rounded-[18px] bg-card p-3.5"
+              >
+                <span className="min-w-0 text-sm">
+                  <span
+                    className={`font-bold ${
+                      drawn ? "text-ink-soft" : won ? "text-good" : "text-accent"
+                    }`}
+                  >
+                    {drawn ? "Égalité" : won ? "Victoire" : "Défaite"}
+                  </span>{" "}
+                  <span className="text-ink-soft">
+                    contre {nameOf.get(other)}
+                  </span>
+                </span>
+                <span className="shrink-0 text-sm font-bold tabular-nums text-primary-deep">
+                  {duelScore(d)}
+                </span>
+              </Link>
+            );
+          })}
+
+          {headToHead.size > 0 && (
+            <p className="text-[11px] text-ink-faint">
+              Face-à-face :{" "}
+              {[...headToHead.entries()]
+                .map(
+                  ([id, r]) => `${r.wins}-${r.losses} contre ${nameOf.get(id)}`
+                )
+                .join(" · ")}
+            </p>
+          )}
+        </section>
+      )}
     </div>
   );
 }

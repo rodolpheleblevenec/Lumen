@@ -4,10 +4,11 @@ import { useState, useTransition } from "react";
 import { Check, Vote } from "lucide-react";
 import { voteTheme } from "@/app/(app)/actions";
 
-type Option = { title: string; pitch: string };
+type Option = { title: string; pitch: string; episodes?: string[] };
 
 /**
- * Vote du thème « Carte blanche » de dimanche : affiché du jeudi au samedi,
+ * Vote du thème « Carte blanche » de dimanche, ou de la série « fil
+ * rouge » du mois (options à 4 épisodes) : affiché du jeudi au samedi,
  * un vote par personne, résultats visibles après avoir voté.
  */
 export function ThemeVote({
@@ -16,12 +17,14 @@ export function ThemeVote({
   myVote,
   tallies,
   sundayLabel,
+  kind = "sunday",
 }: {
   pollId: string;
   options: Option[];
   myVote: number | null;
   tallies: number[];
   sundayLabel: string;
+  kind?: "sunday" | "series";
 }) {
   const [voted, setVoted] = useState<number | null>(myVote);
   const [counts, setCounts] = useState(tallies);
@@ -39,10 +42,15 @@ export function ThemeVote({
   return (
     <section className="rounded-[22px] bg-card-tint px-[22px] py-5">
       <p className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.14em] text-primary">
-        <Vote size={12} aria-hidden /> Carte blanche · {sundayLabel}
+        <Vote size={12} aria-hidden />{" "}
+        {kind === "series" ? `Fil rouge · ${sundayLabel}` : `Carte blanche · ${sundayLabel}`}
       </p>
       <h2 className="font-display mt-2 text-[22px] text-primary-deep">
-        {hasVoted ? "Le cercle vote…" : "Choisis le thème de dimanche"}
+        {hasVoted
+          ? "Le cercle vote…"
+          : kind === "series"
+            ? "Choisis la série du mois"
+            : "Choisis le thème de dimanche"}
       </h2>
       <div className="mt-3 space-y-2">
         {options.map((o, i) => {
@@ -56,9 +64,18 @@ export function ThemeVote({
                 mine ? "border-primary" : "border-transparent"
               } ${hasVoted && !mine ? "opacity-70" : ""}`}
             >
-              <span>
+              <span className="min-w-0">
                 <span className="block text-sm font-semibold">{o.title}</span>
                 <span className="block text-xs text-ink-soft">{o.pitch}</span>
+                {o.episodes && (
+                  <span className="mt-1.5 block space-y-0.5">
+                    {o.episodes.map((ep, j) => (
+                      <span key={j} className="block truncate text-[11px] text-ink-faint">
+                        <span className="font-bold text-primary">{j + 1}.</span> {ep}
+                      </span>
+                    ))}
+                  </span>
+                )}
               </span>
               {hasVoted ? (
                 <span className="flex shrink-0 items-center gap-1.5">
@@ -78,8 +95,10 @@ export function ThemeVote({
       </div>
       {hasVoted && (
         <p className="mt-2.5 text-[11px] text-ink-soft">
-          {total} vote{total > 1 ? "s" : ""} · le thème gagnant sera généré
-          dimanche à l&apos;aube.
+          {total} vote{total > 1 ? "s" : ""} ·{" "}
+          {kind === "series"
+            ? "la série gagnante occupera les 4 dimanches du mois."
+            : "le thème gagnant sera généré dimanche à l'aube."}
         </p>
       )}
     </section>

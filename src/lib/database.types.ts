@@ -112,6 +112,63 @@ export type Database = {
         }
         Relationships: []
       }
+      lumen_duels: {
+        Row: {
+          challenger: string
+          challenger_result: Json | null
+          created_at: string
+          expires_at: string
+          id: string
+          opponent: string
+          opponent_result: Json | null
+          questions: Json
+          stake: string | null
+          status: string
+          winner: string | null
+        }
+        Insert: {
+          challenger: string
+          challenger_result?: Json | null
+          created_at?: string
+          expires_at: string
+          id?: string
+          opponent: string
+          opponent_result?: Json | null
+          questions: Json
+          stake?: string | null
+          status?: string
+          winner?: string | null
+        }
+        Update: {
+          challenger?: string
+          challenger_result?: Json | null
+          created_at?: string
+          expires_at?: string
+          id?: string
+          opponent?: string
+          opponent_result?: Json | null
+          questions?: Json
+          stake?: string | null
+          status?: string
+          winner?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lumen_duels_challenger_fkey"
+            columns: ["challenger"]
+            isOneToOne: false
+            referencedRelation: "lumen_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lumen_duels_opponent_fkey"
+            columns: ["opponent"]
+            isOneToOne: false
+            referencedRelation: "lumen_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       lumen_error_reports: {
         Row: {
           created_at: string
@@ -205,6 +262,8 @@ export type Database = {
           flex_phrase: string | null
           hook: string
           id: string
+          series_episode: number | null
+          series_title: string | null
           status: string
           title: string
         }
@@ -219,6 +278,8 @@ export type Database = {
           flex_phrase?: string | null
           hook: string
           id?: string
+          series_episode?: number | null
+          series_title?: string | null
           status?: string
           title: string
         }
@@ -233,6 +294,8 @@ export type Database = {
           flex_phrase?: string | null
           hook?: string
           id?: string
+          series_episode?: number | null
+          series_title?: string | null
           status?: string
           title?: string
         }
@@ -535,18 +598,21 @@ export type Database = {
         Row: {
           created_at: string
           id: string
+          kind: string
           options: Json
           sunday: string
         }
         Insert: {
           created_at?: string
           id?: string
+          kind?: string
           options: Json
           sunday: string
         }
         Update: {
           created_at?: string
           id?: string
+          kind?: string
           options?: Json
           sunday?: string
         }

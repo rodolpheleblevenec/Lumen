@@ -136,8 +136,18 @@ Temps quotidien total visé : **≤ 10 minutes**.
 - **Mode vacances** : gel du streak sur une période déclarée (max 14 j/an),
   champs `vacation_*` sur `lumen_streaks`.
 - **Le cercle** : carte de stats collectives en tête du classement.
-- Backlog suivant : fil rouge mensuel voté (réutilise le système de vote),
-  duel amical (à cadrer), récap mensuel.
+- **Fil rouge mensuel** : le dernier jeudi du mois, l'IA propose 4 séries de
+  4 épisodes (`lumen_theme_polls.kind='series'`) ; la série gagnante occupe
+  les 4 dimanches du mois suivant (le vote hebdo est suspendu ces
+  dimanches-là) ; chip « Fil rouge · ép. n/4 » sur la leçon.
+- **Duel amical** : asynchrone, 1 duel actif par paire, 24h sinon forfait,
+  5 questions tirées des leçons validées par les deux (mêmes questions, même
+  ordre, bonne réponse jamais envoyée au client). Égalité de score départagée
+  au temps. Hors barème : trophées dédiés (`duel_first`, `duel_5_wins`,
+  `duel_revenge`), gage libre affiché, bilan face-à-face sur le classement.
+  Table `lumen_duels`, push au défié et au résultat.
+- **Récap mensuel** : page `/recap` (stats perso + mois du cercle), carte sur
+  Aujourd'hui du 1er au 3, lien depuis le profil.
 
 ## 7. Génération de contenu (pipeline IA)
 

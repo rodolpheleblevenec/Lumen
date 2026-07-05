@@ -7,6 +7,17 @@ import { srsAfterReview } from "@/lib/srs";
 import { awardQuizBadges, awardReviewBadges } from "@/server/badges";
 import { generateDeepDive } from "@/server/deepen";
 import { ensureLessonAudio } from "@/server/tts";
+import { createAdminClient } from "@/lib/supabase/admin";
+import { sendPushTo } from "@/server/push";
+import {
+  awardDuelBadges,
+  duelExpiry,
+  duelWinner,
+  pickDuelQuestions,
+  scoreDuelAnswers,
+  type DuelQuestion,
+  type DuelResultSide,
+} from "@/server/duels";
 
 export type QuizResult = {
   baseCorrect: number;
@@ -493,6 +504,161 @@ export async function cancelVacation(): Promise<VacationResult> {
 
   revalidatePath("/profil");
   return { ok: true };
+}
+
+/* ─── Duels amicaux ─── */
+
+export type CreateDuelResult =
+  | { ok: true; duelId: string }
+  | { ok: false; error: string };
+
+/**
+ * Lance un duel : 5 questions tirées des leçons validées par les deux,
+ * mêmes questions dans le même ordre, 24h pour jouer. 1 duel actif par
+ * paire. Hors barème hebdo.
+ */
+export async function createDuel(
+  opponentId: string,
+  stake: string | null
+): Promise<CreateDuelResult> {
+  const { supabase, userId } = await requireUserId();
+  if (opponentId === userId)
+    return { ok: false, error: "Tu ne peux pas te défier toi-même." };
+
+  const { data: opponent } = await supabase
+    .from("lumen_profiles")
+    .select("id, display_name")
+    .eq("id", opponentId)
+    .maybeSingle();
+  if (!opponent) return { ok: false, error: "Adversaire introuvable." };
+
+  const admin = createAdminClient();
+  const { data: active } = await admin
+    .from("lumen_duels")
+    .select("id, expires_at")
+    .eq("status", "pending")
+    .or(
+      `and(challenger.eq.${userId},opponent.eq.${opponentId}),and(challenger.eq.${opponentId},opponent.eq.${userId})`
+    );
+  const stillActive = (active ?? []).some(
+    (d) => d.expires_at > new Date().toISOString()
+  );
+  if (stillActive)
+    return { ok: false, error: "Un duel est déjà en cours entre vous deux." };
+
+  const questions = await pickDuelQuestions(userId, opponentId);
+  if ("error" in questions) return { ok: false, error: questions.error };
+
+  const { data: duel, error } = await admin
+    .from("lumen_duels")
+    .insert({
+      challenger: userId,
+      opponent: opponentId,
+      stake: stake?.trim() || null,
+      questions,
+      expires_at: duelExpiry(),
+    })
+    .select("id")
+    .single();
+  if (error) throw error;
+
+  const { data: me } = await supabase
+    .from("lumen_profiles")
+    .select("display_name")
+    .eq("id", userId)
+    .single();
+  void sendPushTo(
+    [opponentId],
+    "Un duel t'attend !",
+    `${me?.display_name ?? "Quelqu'un"} te défie sur 5 questions. Tu as 24h.`,
+    `/duel/${duel.id}`
+  );
+
+  revalidatePath("/classement");
+  return { ok: true, duelId: duel.id };
+}
+
+export type PlayDuelResult =
+  | { ok: true; finished: boolean }
+  | { ok: false; error: string };
+
+/** Enregistre ma manche du duel : score recalculé côté serveur. */
+export async function playDuel(
+  duelId: string,
+  answers: number[],
+  timesMs: number[]
+): Promise<PlayDuelResult> {
+  const { userId } = await requireUserId();
+  const admin = createAdminClient();
+
+  const { data: duel } = await admin
+    .from("lumen_duels")
+    .select("*")
+    .eq("id", duelId)
+    .single();
+  if (!duel) return { ok: false, error: "Duel introuvable." };
+  if (duel.challenger !== userId && duel.opponent !== userId)
+    return { ok: false, error: "Ce duel ne te concerne pas." };
+  if (duel.status !== "pending")
+    return { ok: false, error: "Ce duel est déjà terminé." };
+  if (duel.expires_at < new Date().toISOString())
+    return { ok: false, error: "Trop tard : le duel a expiré." };
+
+  const side = duel.challenger === userId ? "challenger_result" : "opponent_result";
+  if (duel[side]) return { ok: false, error: "Tu as déjà joué ce duel." };
+
+  const questions = duel.questions as DuelQuestion[];
+  const score = await scoreDuelAnswers(questions, answers);
+  const myResult: DuelResultSide = {
+    score,
+    timesMs: timesMs.map((t) => Math.max(0, Math.round(t))),
+    answers,
+    playedAt: new Date().toISOString(),
+  };
+
+  const other =
+    side === "challenger_result" ? duel.opponent_result : duel.challenger_result;
+  const finished = Boolean(other);
+
+  let winner: string | null = null;
+  if (finished) {
+    const challengerResult = (
+      side === "challenger_result" ? myResult : duel.challenger_result
+    ) as DuelResultSide;
+    const opponentResult = (
+      side === "opponent_result" ? myResult : duel.opponent_result
+    ) as DuelResultSide;
+    winner = duelWinner(duel, challengerResult, opponentResult);
+  }
+
+  const { error } = await admin
+    .from("lumen_duels")
+    .update({
+      [side]: myResult,
+      ...(finished ? { status: "completed", winner } : {}),
+    })
+    .eq("id", duelId)
+    .eq("status", "pending");
+  if (error) throw error;
+
+  const otherId = duel.challenger === userId ? duel.opponent : duel.challenger;
+  if (finished) {
+    await awardDuelBadges(duelId, duel.challenger, duel.opponent, winner);
+    void sendPushTo(
+      [otherId],
+      "Duel terminé !",
+      winner === otherId
+        ? "Victoire ! Viens voir le face-à-face."
+        : winner
+          ? "Défaite… viens voir ce qui s'est joué."
+          : "Égalité parfaite. Ça se rejoue ?",
+      `/duel/${duelId}`
+    );
+  }
+
+  revalidatePath("/classement");
+  revalidatePath(`/duel/${duelId}`);
+  return { ok: true, finished };
 }
 
 /* ─── Notifications push ─── */

@@ -27,6 +27,8 @@ type LessonData = {
   anecdote: string | null;
   flex_phrase: string | null;
   date_hook?: string | null;
+  series_title?: string | null;
+  series_episode?: number | null;
 };
 
 type Validator = { display_name: string; avatar_url: string | null };
@@ -208,6 +210,14 @@ export function LessonFlow({
               <span className="flex items-center gap-1 rounded-full bg-card px-2.5 py-1 text-[11px] font-medium text-ink-soft">
                 <Clock size={11} aria-hidden /> {readingMinutes ?? 5} min
               </span>
+              {lesson.series_title && (
+                <span
+                  className="max-w-[220px] truncate rounded-full bg-card px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.12em] text-accent"
+                  title={lesson.series_title}
+                >
+                  Fil rouge · ép. {lesson.series_episode}/4
+                </span>
+              )}
               {mode === "catchup" && (
                 <span className="rounded-full bg-card px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.12em] text-accent">
                   Rattrapage · 5 pts/réponse

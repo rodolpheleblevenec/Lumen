@@ -30,4 +30,7 @@ export const BADGES: Record<
   streak_365: { label: "Une année entière", goal: { kind: "streak", target: 365 } },
   notions_50: { label: "50 notions acquises", goal: { kind: "notions", target: 50 } },
   domain_master: { label: "Un domaine maîtrisé" },
+  duel_first: { label: "Premier duel" },
+  duel_5_wins: { label: "5 duels gagnés" },
+  duel_revenge: { label: "Revanche prise" },
 };

@@ -1,11 +1,15 @@
+import Link from "next/link";
 import {
   Brain,
   Crown,
   Flame,
   Gem,
   GraduationCap,
+  Medal,
   Star,
+  Swords,
   Trophy,
+  Undo2,
   Zap,
   type LucideIcon,
 } from "lucide-react";
@@ -27,6 +31,9 @@ const BADGE_ICONS: Record<
   streak_365: { Icon: Crown, color: "var(--primary)", soft: "var(--primary-soft)" },
   notions_50: { Icon: Brain, color: "var(--teal)", soft: "var(--teal-soft)" },
   domain_master: { Icon: GraduationCap, color: "var(--green)", soft: "var(--green-soft)" },
+  duel_first: { Icon: Swords, color: "var(--accent)", soft: "var(--accent-soft)" },
+  duel_5_wins: { Icon: Medal, color: "var(--primary)", soft: "var(--primary-soft)" },
+  duel_revenge: { Icon: Undo2, color: "var(--teal)", soft: "var(--teal-soft)" },
 };
 
 export default async function ProfilPage() {
@@ -183,6 +190,13 @@ export default async function ProfilPage() {
         <NotificationsToggle />
         <PushHourSelect initialHour={profile?.push_hour ?? 8} />
       </section>
+
+      <Link
+        href="/recap"
+        className="hover-lift shadow-card block rounded-[18px] bg-card p-4 text-sm font-medium text-primary"
+      >
+        Voir le récap du mois dernier →
+      </Link>
 
       <section className="space-y-3">
         <h2 className="text-[13.5px] font-bold">Vacances</h2>

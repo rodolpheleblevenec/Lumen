@@ -4,9 +4,40 @@ import { LessonFlow } from "@/components/lesson-flow";
 import { WeekStrip } from "@/components/week-strip";
 import { Onboarding } from "@/components/onboarding";
 import { ThemeVote } from "@/components/theme-vote";
-import { MoonStar } from "lucide-react";
+import Link from "next/link";
+import { ChevronRight, MoonStar, Sparkles } from "lucide-react";
 
-/** Carte de vote « Carte blanche » : visible du jeudi au samedi. */
+/** Carte vers le récap du mois écoulé, du 1er au 3 du mois. */
+function recapCard(today: string) {
+  if (Number(today.slice(8, 10)) > 3) return null;
+  const prevMonth = new Intl.DateTimeFormat("fr-FR", { month: "long" }).format(
+    new Date(new Date(today + "T12:00:00Z").setUTCDate(0))
+  );
+  return (
+    <Link
+      href="/recap"
+      className="hover-lift shadow-card flex items-center gap-3 rounded-[18px] bg-card p-3.5"
+    >
+      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary-soft text-primary">
+        <Sparkles size={18} aria-hidden />
+      </span>
+      <span className="min-w-0 flex-1">
+        <span className="block text-sm font-bold">
+          Ton récap de {prevMonth} est prêt
+        </span>
+        <span className="block text-xs text-ink-soft">
+          Tes stats et celles du cercle.
+        </span>
+      </span>
+      <ChevronRight size={16} className="shrink-0 text-ink-faint" aria-hidden />
+    </Link>
+  );
+}
+
+/**
+ * Carte de vote, visible du jeudi au samedi : série « fil rouge » du mois
+ * suivant en priorité (dernier week-end du mois), sinon thème de dimanche.
+ */
 async function themeVoteCard(
   supabase: Awaited<ReturnType<typeof createClient>>,
   userId: string,
@@ -15,12 +46,27 @@ async function themeVoteCard(
 ) {
   if (![4, 5, 6].includes(weekdayOf(today))) return null;
   const sunday = addDays(monday, 6);
+  // Le vote de série ne s'affiche que la dernière semaine du mois
+  const lastWeekOfMonth = addDays(today, 7).slice(0, 7) !== today.slice(0, 7);
+  const nextMonthFirst = addDays(today, 7).slice(0, 8) + "01";
 
-  const { data: poll } = await supabase
-    .from("lumen_theme_polls")
-    .select("id, options")
-    .eq("sunday", sunday)
-    .maybeSingle();
+  const [{ data: seriesPoll }, { data: weekPoll }] = await Promise.all([
+    lastWeekOfMonth
+      ? supabase
+          .from("lumen_theme_polls")
+          .select("id, options, sunday, kind")
+          .eq("sunday", nextMonthFirst)
+          .eq("kind", "series")
+          .maybeSingle()
+      : Promise.resolve({ data: null }),
+    supabase
+      .from("lumen_theme_polls")
+      .select("id, options, sunday, kind")
+      .eq("sunday", sunday)
+      .eq("kind", "sunday")
+      .maybeSingle(),
+  ]);
+  const poll = seriesPoll ?? weekPoll;
   if (!poll) return null;
 
   const { data: ballots } = await supabase
@@ -35,13 +81,21 @@ async function themeVoteCard(
     if (b.user_id === userId) myVote = b.option_idx;
   }
 
+  const isSeries = poll.kind === "series";
   return (
     <ThemeVote
       pollId={poll.id}
-      options={poll.options as { title: string; pitch: string }[]}
+      options={poll.options as { title: string; pitch: string; episodes?: string[] }[]}
       myVote={myVote}
       tallies={tallies}
-      sundayLabel={formatDateFr(sunday)}
+      kind={isSeries ? "series" : "sunday"}
+      sundayLabel={
+        isSeries
+          ? new Intl.DateTimeFormat("fr-FR", { month: "long" }).format(
+              new Date(poll.sunday + "T12:00:00Z")
+            )
+          : formatDateFr(sunday)
+      }
     />
   );
 }
@@ -58,7 +112,7 @@ export default async function TodayPage() {
       supabase
         .from("lumen_lessons")
         .select(
-          "id, date, domain, title, hook, body_md, anecdote, flex_phrase, date_hook, audio_path"
+          "id, date, domain, title, hook, body_md, anecdote, flex_phrase, date_hook, audio_path, series_title, series_episode"
         )
         .eq("date", today)
         .maybeSingle(),
@@ -168,6 +222,7 @@ export default async function TodayPage() {
         validatedDates={[...validatedDates]}
         jokerAvailable={jokerAvailable}
       />
+      {recapCard(today)}
       <LessonFlow
         lesson={lesson}
         dateLabel={formatDateFr(lesson.date)}

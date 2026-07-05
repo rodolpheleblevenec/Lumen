@@ -14,7 +14,7 @@ export default async function LeconPage({
   const { data: lesson } = await supabase
     .from("lumen_lessons")
     .select(
-      "id, date, domain, title, hook, body_md, anecdote, flex_phrase, date_hook, audio_path"
+      "id, date, domain, title, hook, body_md, anecdote, flex_phrase, date_hook, audio_path, series_title, series_episode"
     )
     .eq("id", id)
     .maybeSingle();
