@@ -118,6 +118,27 @@ Temps quotidien total visé : **≤ 10 minutes**.
 - Dark mode : structure conservée dans les tokens CSS mais **non couvert par le design « Le Studio » pour l'instant** (le clair s'applique partout) — à retravailler.
 - Identité « Lumen » : design system **« Le Studio »** (juillet 2026) — indigo `#4338ca` + corail `#e2543a` sur crème `#f6f3ec`, titres Instrument Serif (400), tout le reste en Archivo, cartes blanches à ombres douces, boutons « à pousser » (ombre dure décalée), zéro emoji dans l'UI (icônes lucide), marque « Le Levant » (soleil levant sur l'horizon). Référence : handoff `Redesign de l'app Lumen/design_handoff_lumen_studio/` (Downloads).
 
+## 6 bis. Livré en V1.1 (juillet 2026)
+
+- **Heure de rappel personnalisée** : `lumen_profiles.push_hour` (0-23, Paris),
+  job push horaire qui ne notifie que les profils dont l'heure correspond.
+- **Creuser cette leçon** : approfondissement (~300 mots) d'une partie choisie
+  par l'utilisateur, généré au clic, mis en cache et partagé au cercle
+  (`lumen_deep_dives`). Jamais de pré-génération.
+- **Audio de la leçon** : TTS (`gpt-4o-mini-tts`, voix marin/coral) généré au
+  premier clic « Écouter », stocké dans le bucket public `lumen-audio`, servi
+  à tout le cercle ensuite.
+- **Vote du thème Carte blanche** : le jeudi, l'IA propose 4 thèmes
+  (`lumen_theme_polls`) ; le cercle vote (1 voix/personne, jeu→sam) ; la
+  génération de dimanche traite le thème gagnant.
+- **Contexte du jour** : champ `date_hook` (lien réel date/sujet, sinon null),
+  affiché sous le titre.
+- **Mode vacances** : gel du streak sur une période déclarée (max 14 j/an),
+  champs `vacation_*` sur `lumen_streaks`.
+- **Le cercle** : carte de stats collectives en tête du classement.
+- Backlog suivant : fil rouge mensuel voté (réutilise le système de vote),
+  duel amical (à cadrer), récap mensuel.
+
 ## 7. Génération de contenu (pipeline IA)
 
 ### Pipeline nocturne

@@ -42,6 +42,17 @@ export function parisStartOfDayISO(dateStr: string): string {
   return `${dateStr}T00:00:00${offset}`;
 }
 
+/** Heure courante (0-23) à Paris. */
+export function parisHourNow(): number {
+  return Number(
+    new Intl.DateTimeFormat("fr-FR", {
+      timeZone: "Europe/Paris",
+      hour: "numeric",
+      hour12: false,
+    }).format(new Date())
+  );
+}
+
 export function formatDateFr(dateStr: string): string {
   return new Intl.DateTimeFormat("fr-FR", {
     weekday: "long",

@@ -12,7 +12,7 @@ export default async function ClassementPage() {
   const today = parisToday();
   const monday = mondayOfWeek(today);
 
-  const [{ data: profiles }, { data: points }, { data: streaks }] =
+  const [{ data: profiles }, { data: points }, { data: streaks }, { count: lessonsDone }] =
     await Promise.all([
       supabase.from("lumen_profiles").select("id, display_name, avatar_url"),
       supabase
@@ -20,6 +20,10 @@ export default async function ClassementPage() {
         .select("user_id, points")
         .gte("occurred_at", parisStartOfDayISO(monday)),
       supabase.from("lumen_streaks").select("user_id, current, best"),
+      supabase
+        .from("lumen_lesson_progress")
+        .select("*", { count: "exact", head: true })
+        .not("quiz_completed_at", "is", null),
     ]);
 
   const totals = new Map<string, number>();
@@ -45,6 +49,14 @@ export default async function ClassementPage() {
     )
   );
 
+  const weekPoints = [...totals.values()].reduce((a, b) => a + b, 0);
+  const bestStreak = Math.max(0, ...(streaks ?? []).map((s) => s.best ?? 0));
+  const circleStats = [
+    { value: lessonsDone ?? 0, label: "Leçons validées" },
+    { value: weekPoints, label: "Points cette semaine" },
+    { value: bestStreak, label: "Record de streak" },
+  ];
+
   return (
     <div className="animate-fade-up space-y-4">
       <div>
@@ -56,6 +68,24 @@ export default async function ClassementPage() {
           {daysLeft === 1 ? "dernier jour !" : `${daysLeft} jours restants`}.
         </p>
       </div>
+
+      <section className="rounded-[22px] bg-card-tint px-[22px] py-4">
+        <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-primary">
+          Le cercle
+        </p>
+        <div className="mt-2 grid grid-cols-3 gap-2 text-center">
+          {circleStats.map(({ value, label }) => (
+            <div key={label}>
+              <p className="font-display text-[26px] tabular-nums text-primary-deep">
+                {value}
+              </p>
+              <p className="text-[9px] font-bold uppercase tracking-[0.1em] text-ink-soft">
+                {label}
+              </p>
+            </div>
+          ))}
+        </div>
+      </section>
 
       <ol className="space-y-2.5">
         {ranking.map((p, i) => {

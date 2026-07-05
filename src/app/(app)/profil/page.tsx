@@ -10,8 +10,11 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
+import { parisToday } from "@/lib/dates";
 import { BADGES } from "@/lib/types";
 import { NotificationsToggle } from "@/components/notifications-toggle";
+import { PushHourSelect } from "@/components/push-hour-select";
+import { VacationCard } from "@/components/vacation-card";
 
 const BADGE_ICONS: Record<
   string,
@@ -35,12 +38,14 @@ export default async function ProfilPage() {
     await Promise.all([
       supabase
         .from("lumen_profiles")
-        .select("display_name, avatar_url")
+        .select("display_name, avatar_url, push_hour")
         .eq("id", userId)
         .single(),
       supabase
         .from("lumen_streaks")
-        .select("current, best")
+        .select(
+          "current, best, vacation_start, vacation_end, vacation_days_used, vacation_year"
+        )
         .eq("user_id", userId)
         .maybeSingle(),
       supabase
@@ -176,6 +181,23 @@ export default async function ProfilPage() {
       <section className="space-y-3">
         <h2 className="text-[13.5px] font-bold">Notifications</h2>
         <NotificationsToggle />
+        <PushHourSelect initialHour={profile?.push_hour ?? 8} />
+      </section>
+
+      <section className="space-y-3">
+        <h2 className="text-[13.5px] font-bold">Vacances</h2>
+        <VacationCard
+          start={streak?.vacation_start ?? null}
+          end={streak?.vacation_end ?? null}
+          remaining={Math.max(
+            0,
+            14 -
+              (streak?.vacation_year === Number(parisToday().slice(0, 4))
+                ? (streak?.vacation_days_used ?? 0)
+                : 0)
+          )}
+          today={parisToday()}
+        />
       </section>
 
       <form action="/auth/signout" method="post" className="pt-2">

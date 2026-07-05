@@ -13,7 +13,9 @@ export default async function LeconPage({
 
   const { data: lesson } = await supabase
     .from("lumen_lessons")
-    .select("id, date, domain, title, hook, body_md, anecdote, flex_phrase")
+    .select(
+      "id, date, domain, title, hook, body_md, anecdote, flex_phrase, date_hook, audio_path"
+    )
     .eq("id", id)
     .maybeSingle();
   if (!lesson) notFound();
@@ -37,11 +39,16 @@ export default async function LeconPage({
     .eq("lesson_id", lesson.id)
     .maybeSingle();
 
+  const audioUrl = lesson.audio_path
+    ? `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/lumen-audio/${lesson.audio_path}`
+    : null;
+
   return (
     <LessonFlow
       lesson={lesson}
       dateLabel={formatDateFr(lesson.date)}
       mode="catchup"
+      audioUrl={audioUrl}
       questions={(questions ?? []).map((q) => ({
         id: q.id,
         tier: q.tier as "base" | "bonus",

@@ -1,10 +1,11 @@
 import { NextResponse, type NextRequest } from "next/server";
 import webpush from "web-push";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { parisToday } from "@/lib/dates";
+import { parisHourNow, parisToday } from "@/lib/dates";
 
-// Appelée par Cloud Scheduler le matin (~8h Europe/Paris) :
-// « ☀️ Ta leçon du jour t'attend » à tous les abonnés.
+// Appelée par Cloud Scheduler toutes les heures : notifie les abonnés
+// dont l'heure de rappel choisie (lumen_profiles.push_hour) correspond
+// à l'heure courante de Paris.
 export async function POST(request: NextRequest) {
   const auth = request.headers.get("authorization");
   if (!process.env.CRON_SECRET || auth !== `Bearer ${process.env.CRON_SECRET}`) {
@@ -35,9 +36,23 @@ export async function POST(request: NextRequest) {
     url: "/",
   });
 
+  // ?hour=N pour forcer (tests) ; sinon l'heure courante de Paris
+  const hourParam = request.nextUrl.searchParams.get("hour");
+  const hour = hourParam !== null ? Number(hourParam) : parisHourNow();
+
+  const { data: profiles } = await supabase
+    .from("lumen_profiles")
+    .select("id")
+    .eq("push_hour", hour);
+  const userIds = (profiles ?? []).map((p) => p.id);
+  if (!userIds.length) {
+    return NextResponse.json({ ok: true, hour, sent: 0, removed: 0, total: 0 });
+  }
+
   const { data: subs } = await supabase
     .from("lumen_push_subscriptions")
-    .select("id, endpoint, p256dh, auth");
+    .select("id, endpoint, p256dh, auth")
+    .in("user_id", userIds);
 
   let sent = 0;
   let removed = 0;
@@ -64,5 +79,5 @@ export async function POST(request: NextRequest) {
     }
   }
 
-  return NextResponse.json({ ok: true, sent, removed, total: subs?.length ?? 0 });
+  return NextResponse.json({ ok: true, hour, sent, removed, total: subs?.length ?? 0 });
 }

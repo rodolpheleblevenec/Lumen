@@ -6,6 +6,8 @@ import ReactMarkdown from "react-markdown";
 import { Check, Clock, Flame, X } from "lucide-react";
 import { completeQuiz, type QuizResult } from "@/app/(app)/actions";
 import { NotificationsToggle } from "@/components/notifications-toggle";
+import { AudioButton } from "@/components/audio-button";
+import { DeepDive, diveSections } from "@/components/deep-dive";
 
 type QuizQuestion = {
   id: string;
@@ -24,6 +26,7 @@ type LessonData = {
   body_md: string;
   anecdote: string | null;
   flex_phrase: string | null;
+  date_hook?: string | null;
 };
 
 type Validator = { display_name: string; avatar_url: string | null };
@@ -83,6 +86,7 @@ export function LessonFlow({
   mode = "today",
   readingMinutes,
   others = [],
+  audioUrl = null,
 }: {
   lesson: LessonData;
   dateLabel: string;
@@ -92,6 +96,7 @@ export function LessonFlow({
   mode?: "today" | "catchup";
   readingMinutes?: number;
   others?: Validator[];
+  audioUrl?: string | null;
 }) {
   const router = useRouter();
   const [phase, setPhase] = useState<Phase>(initialDone ? "done" : "reading");
@@ -215,6 +220,14 @@ export function LessonFlow({
           <h1 className="font-display mt-4 text-[33px] leading-[1.1] text-balance text-primary-deep lg:text-[40px]">
             {lesson.title}
           </h1>
+
+          {lesson.date_hook && (
+            <p className="mt-2 text-xs italic text-ink-soft">{lesson.date_hook}</p>
+          )}
+
+          <div className="mt-3">
+            <AudioButton lessonId={lesson.id} initialUrl={audioUrl} />
+          </div>
 
           {others.length > 0 && (
             <div className="mt-3 flex items-center gap-2 text-xs text-ink-soft">
@@ -543,6 +556,11 @@ function DoneScreen({
           </p>
         </aside>
       )}
+
+      <DeepDive
+        lessonId={lesson.id}
+        sections={diveSections(lesson.body_md, Boolean(lesson.anecdote))}
+      />
 
       {showNotifPrompt && <NotificationsToggle />}
 

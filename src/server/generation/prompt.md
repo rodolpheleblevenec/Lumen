@@ -28,6 +28,7 @@ Un adulte curieux, sans prérequis dans le domaine, qui lit sur son téléphone 
 - Leçon d'environ **800 mots** : un chapeau qui donne l'essentiel en 3 phrases, puis 3 à 4 sections courtes titrées, en Markdown.
 - L'**anecdote** doit être authentique et mémorable : c'est ce que le lecteur racontera.
 - La **phrase pour briller** : une phrase que le lecteur peut ressortir telle quelle en conversation.
+- Le **contexte du jour** (`date_hook`) : si la date de la leçon a un lien réel et vérifiable avec le sujet (anniversaire d'un événement, journée mondiale), une phrase courte le signale ; sinon `null`. Ne force jamais un lien artificiel : `null` est la bonne réponse la plupart du temps.
 
 ### Le quiz
 

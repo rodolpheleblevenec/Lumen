@@ -38,8 +38,13 @@ classement hebdo, badges. Bibliothèque des leçons passées + 1 joker de rattra
   `src/server/generation/prompt.md`. `OPENAI_API_KEY` et `SUPABASE_SERVICE_ROLE_KEY`
   ne doivent JAMAIS atteindre le client — serveur uniquement (routes API / Server Actions).
 - Routes cron (génération, push) : protégées par `CRON_SECRET`, appelées par
-  GCP Cloud Scheduler (jobs `lumen-generate-lesson` 4h30 et `lumen-send-push` 8h,
-  Europe/Paris). Prod : Cloud Run `lumen`, projet GCP `lumen-501322`, europe-west1 —
+  GCP Cloud Scheduler (jobs `lumen-generate-lesson` 4h30 et `lumen-send-push`
+  toutes les heures — chaque profil choisit son heure via `push_hour`,
+  Europe/Paris). Le jeudi, la génération ouvre aussi le vote du thème
+  « Carte blanche » de dimanche (`lumen_theme_polls`).
+- IA à la demande (jamais pré-générée, geste utilisateur obligatoire) :
+  « Creuser » (`lumen_deep_dives`, cache partagé au cercle) et audio TTS
+  (`gpt-4o-mini-tts`, bucket public `lumen-audio`, généré au premier clic). Prod : Cloud Run `lumen`, projet GCP `lumen-501322`, europe-west1 —
   **https://lumen.rodserver.fr** (CNAME OVH → ghs.googlehosted.com, alias run.app).
   Déploiement manuel par `gcloud run deploy lumen --source .` (pas de trigger auto sur push).
 - Contenu et UI en **français**.

@@ -52,6 +52,51 @@ export type Database = {
           },
         ]
       }
+      lumen_deep_dives: {
+        Row: {
+          content_md: string
+          created_at: string
+          created_by: string | null
+          id: string
+          lesson_id: string
+          section_key: string
+          section_title: string
+        }
+        Insert: {
+          content_md: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          lesson_id: string
+          section_key: string
+          section_title: string
+        }
+        Update: {
+          content_md?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          lesson_id?: string
+          section_key?: string
+          section_title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lumen_deep_dives_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "lumen_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lumen_deep_dives_lesson_id_fkey"
+            columns: ["lesson_id"]
+            isOneToOne: false
+            referencedRelation: "lumen_lessons"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       lumen_domain_calendar: {
         Row: {
           domain: string
@@ -151,9 +196,11 @@ export type Database = {
       lumen_lessons: {
         Row: {
           anecdote: string | null
+          audio_path: string | null
           body_md: string
           created_at: string
           date: string
+          date_hook: string | null
           domain: string
           flex_phrase: string | null
           hook: string
@@ -163,9 +210,11 @@ export type Database = {
         }
         Insert: {
           anecdote?: string | null
+          audio_path?: string | null
           body_md: string
           created_at?: string
           date: string
+          date_hook?: string | null
           domain: string
           flex_phrase?: string | null
           hook: string
@@ -175,9 +224,11 @@ export type Database = {
         }
         Update: {
           anecdote?: string | null
+          audio_path?: string | null
           body_md?: string
           created_at?: string
           date?: string
+          date_hook?: string | null
           domain?: string
           flex_phrase?: string | null
           hook?: string
@@ -262,6 +313,7 @@ export type Database = {
           display_name: string
           id: string
           notif_time: string
+          push_hour: number
           timezone: string
         }
         Insert: {
@@ -270,6 +322,7 @@ export type Database = {
           display_name: string
           id: string
           notif_time?: string
+          push_hour?: number
           timezone?: string
         }
         Update: {
@@ -278,6 +331,7 @@ export type Database = {
           display_name?: string
           id?: string
           notif_time?: string
+          push_hour?: number
           timezone?: string
         }
         Relationships: []
@@ -404,6 +458,10 @@ export type Database = {
           joker_used_week_of: string | null
           last_validated_date: string | null
           user_id: string
+          vacation_days_used: number
+          vacation_end: string | null
+          vacation_start: string | null
+          vacation_year: number | null
         }
         Insert: {
           best?: number
@@ -411,6 +469,10 @@ export type Database = {
           joker_used_week_of?: string | null
           last_validated_date?: string | null
           user_id: string
+          vacation_days_used?: number
+          vacation_end?: string | null
+          vacation_start?: string | null
+          vacation_year?: number | null
         }
         Update: {
           best?: number
@@ -418,6 +480,10 @@ export type Database = {
           joker_used_week_of?: string | null
           last_validated_date?: string | null
           user_id?: string
+          vacation_days_used?: number
+          vacation_end?: string | null
+          vacation_start?: string | null
+          vacation_year?: number | null
         }
         Relationships: [
           {
@@ -428,6 +494,63 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      lumen_theme_ballots: {
+        Row: {
+          created_at: string
+          option_idx: number
+          poll_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          option_idx: number
+          poll_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          option_idx?: number
+          poll_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lumen_theme_ballots_poll_id_fkey"
+            columns: ["poll_id"]
+            isOneToOne: false
+            referencedRelation: "lumen_theme_polls"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lumen_theme_ballots_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "lumen_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      lumen_theme_polls: {
+        Row: {
+          created_at: string
+          id: string
+          options: Json
+          sunday: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          options: Json
+          sunday: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          options?: Json
+          sunday?: string
+        }
+        Relationships: []
       }
       orienta_admin_config: {
         Row: {

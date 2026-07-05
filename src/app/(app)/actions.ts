@@ -5,6 +5,8 @@ import { createClient } from "@/lib/supabase/server";
 import { addDays, mondayOfWeek, parisToday, POINTS } from "@/lib";
 import { srsAfterReview } from "@/lib/srs";
 import { awardQuizBadges, awardReviewBadges } from "@/server/badges";
+import { generateDeepDive } from "@/server/deepen";
+import { ensureLessonAudio } from "@/server/tts";
 
 export type QuizResult = {
   baseCorrect: number;
@@ -155,18 +157,33 @@ export async function completeQuiz(
   // Streak
   const { data: streakRow } = await supabase
     .from("lumen_streaks")
-    .select("current, best, last_validated_date, joker_used_week_of")
+    .select(
+      "current, best, last_validated_date, joker_used_week_of, vacation_start, vacation_end"
+    )
     .eq("user_id", userId)
     .maybeSingle();
 
   let current = streakRow?.current ?? 0;
   let streakSaved = false;
 
+  // Mode vacances : le trou entre le dernier jour validé et aujourd'hui
+  // est « gelé » si chaque jour manqué tombe dans la période déclarée.
+  const gapFrozen = (() => {
+    const last = streakRow?.last_validated_date;
+    const vs = streakRow?.vacation_start;
+    const ve = streakRow?.vacation_end;
+    if (!last || !vs || !ve || last >= today) return false;
+    for (let d = addDays(last, 1); d < today; d = addDays(d, 1)) {
+      if (d < vs || d > ve) return false;
+    }
+    return true;
+  })();
+
   if (!isCatchup) {
     // Validation du jour
     if (streakRow?.last_validated_date === today) {
       current = streakRow.current;
-    } else if (streakRow?.last_validated_date === yesterday) {
+    } else if (streakRow?.last_validated_date === yesterday || gapFrozen) {
       current = (streakRow?.current ?? 0) + 1;
     } else {
       current = 1;
@@ -293,6 +310,189 @@ export async function completeReview(
   revalidatePath("/classement");
 
   return { reviewed, correct, points, acquired };
+}
+
+/* ─── Creuser cette notion ─── */
+
+/**
+ * Approfondissement d'une partie de leçon, généré à la demande (jamais
+ * pré-généré) et partagé au cercle via lumen_deep_dives.
+ */
+export async function deepenSection(
+  lessonId: string,
+  sectionKey: string,
+  sectionTitle: string
+): Promise<{ content: string }> {
+  const { supabase, userId } = await requireUserId();
+
+  // La RLS garantit ici que l'appelant est membre et la leçon publiée
+  const { data: lesson } = await supabase
+    .from("lumen_lessons")
+    .select("id, domain, title, body_md, anecdote")
+    .eq("id", lessonId)
+    .single();
+  if (!lesson) throw new Error("leçon introuvable");
+
+  const content = await generateDeepDive(lesson, sectionKey, sectionTitle, userId);
+  return { content };
+}
+
+/* ─── Audio de la leçon ─── */
+
+export async function getLessonAudio(
+  lessonId: string
+): Promise<{ url: string }> {
+  const { supabase } = await requireUserId();
+
+  // Vérification d'accès via RLS avant de passer au client admin
+  const { data: lesson } = await supabase
+    .from("lumen_lessons")
+    .select("id")
+    .eq("id", lessonId)
+    .single();
+  if (!lesson) throw new Error("leçon introuvable");
+
+  const url = await ensureLessonAudio(lessonId);
+  return { url };
+}
+
+/* ─── Vote du thème du dimanche ─── */
+
+export async function voteTheme(pollId: string, optionIdx: number) {
+  const { supabase, userId } = await requireUserId();
+  if (optionIdx < 0 || optionIdx > 3) throw new Error("option invalide");
+
+  const { error } = await supabase.from("lumen_theme_ballots").insert({
+    poll_id: pollId,
+    user_id: userId,
+    option_idx: optionIdx,
+  });
+  // 23505 = déjà voté : on ignore (un seul vote par personne)
+  if (error && error.code !== "23505") throw error;
+
+  revalidatePath("/");
+}
+
+/* ─── Préférences : heure de rappel ─── */
+
+export async function setPushHour(hour: number) {
+  const { supabase, userId } = await requireUserId();
+  if (!Number.isInteger(hour) || hour < 0 || hour > 23)
+    throw new Error("heure invalide");
+  const { error } = await supabase
+    .from("lumen_profiles")
+    .update({ push_hour: hour })
+    .eq("id", userId);
+  if (error) throw error;
+  revalidatePath("/profil");
+}
+
+/* ─── Mode vacances ─── */
+
+const VACATION_MAX_DAYS_PER_YEAR = 14;
+
+export type VacationResult = { ok: boolean; error?: string };
+
+/** Déclare une période de vacances : streak gelé, max 14 jours/an. */
+export async function setVacation(
+  start: string,
+  end: string
+): Promise<VacationResult> {
+  const { supabase, userId } = await requireUserId();
+  const today = parisToday();
+
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(start) || !/^\d{4}-\d{2}-\d{2}$/.test(end))
+    return { ok: false, error: "Dates invalides." };
+  if (start > end) return { ok: false, error: "Le début doit précéder la fin." };
+  if (end < today) return { ok: false, error: "Cette période est déjà passée." };
+
+  const days =
+    Math.round(
+      (new Date(end + "T12:00:00Z").getTime() -
+        new Date(start + "T12:00:00Z").getTime()) /
+        86_400_000
+    ) + 1;
+
+  const { data: streak } = await supabase
+    .from("lumen_streaks")
+    .select("vacation_days_used, vacation_year, vacation_start, vacation_end")
+    .eq("user_id", userId)
+    .maybeSingle();
+  if (!streak) return { ok: false, error: "Profil sans streak." };
+  if (streak.vacation_start && streak.vacation_end && streak.vacation_end >= today)
+    return { ok: false, error: "Une période est déjà déclarée : annule-la d'abord." };
+
+  const year = Number(start.slice(0, 4));
+  const used = streak.vacation_year === year ? streak.vacation_days_used : 0;
+  if (used + days > VACATION_MAX_DAYS_PER_YEAR)
+    return {
+      ok: false,
+      error: `Il te reste ${VACATION_MAX_DAYS_PER_YEAR - used} jour(s) de gel cette année.`,
+    };
+
+  const { error } = await supabase
+    .from("lumen_streaks")
+    .update({
+      vacation_start: start,
+      vacation_end: end,
+      vacation_days_used: used + days,
+      vacation_year: year,
+    })
+    .eq("user_id", userId);
+  if (error) throw error;
+
+  revalidatePath("/profil");
+  return { ok: true };
+}
+
+/** Annule la période à venir (ou en cours) et rend les jours non consommés. */
+export async function cancelVacation(): Promise<VacationResult> {
+  const { supabase, userId } = await requireUserId();
+  const today = parisToday();
+
+  const { data: streak } = await supabase
+    .from("lumen_streaks")
+    .select("vacation_start, vacation_end, vacation_days_used")
+    .eq("user_id", userId)
+    .maybeSingle();
+  if (!streak?.vacation_start || !streak.vacation_end)
+    return { ok: false, error: "Aucune période déclarée." };
+
+  // Jours déjà consommés (période entamée) : restent décomptés
+  const effectiveEnd =
+    streak.vacation_start <= today ? addDays(today, -1) : null;
+  const consumed = effectiveEnd
+    ? Math.max(
+        0,
+        Math.round(
+          (new Date(effectiveEnd + "T12:00:00Z").getTime() -
+            new Date(streak.vacation_start + "T12:00:00Z").getTime()) /
+            86_400_000
+        ) + 1
+      )
+    : 0;
+  const declared =
+    Math.round(
+      (new Date(streak.vacation_end + "T12:00:00Z").getTime() -
+        new Date(streak.vacation_start + "T12:00:00Z").getTime()) /
+        86_400_000
+    ) + 1;
+
+  const { error } = await supabase
+    .from("lumen_streaks")
+    .update({
+      vacation_start: null,
+      vacation_end: null,
+      vacation_days_used: Math.max(
+        0,
+        streak.vacation_days_used - declared + consumed
+      ),
+    })
+    .eq("user_id", userId);
+  if (error) throw error;
+
+  revalidatePath("/profil");
+  return { ok: true };
 }
 
 /* ─── Notifications push ─── */

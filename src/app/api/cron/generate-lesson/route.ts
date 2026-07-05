@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { generateLesson } from "@/server/generation/generate";
-import { parisToday } from "@/lib/dates";
+import { ensureThemePoll, generateLesson } from "@/server/generation/generate";
+import { addDays, parisToday, weekdayOf } from "@/lib/dates";
 
 export const maxDuration = 300;
 
@@ -20,7 +20,19 @@ export async function POST(request: NextRequest) {
 
   try {
     const result = await generateLesson(date);
-    return NextResponse.json(result);
+
+    // Jeudi : ouvrir le vote du thème Carte blanche de dimanche.
+    // Non bloquant : un échec ici ne doit pas faire échouer la leçon.
+    let poll: Awaited<ReturnType<typeof ensureThemePoll>> | null = null;
+    if (weekdayOf(date) === 4) {
+      try {
+        poll = await ensureThemePoll(addDays(date, 3));
+      } catch (e) {
+        console.error("[theme-poll]", e);
+      }
+    }
+
+    return NextResponse.json(poll ? { ...result, poll } : result);
   } catch (e) {
     console.error("[generate-lesson]", e);
     return NextResponse.json(

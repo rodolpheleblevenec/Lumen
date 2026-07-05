@@ -14,12 +14,18 @@ const LESSON_SCHEMA = {
     "body_md",
     "anecdote",
     "flex_phrase",
+    "date_hook",
     "questions",
     "notions",
   ],
   properties: {
     title: { type: "string", description: "Titre accrocheur de la leçon" },
     hook: { type: "string", description: "Chapeau : l'essentiel en 3 phrases" },
+    date_hook: {
+      type: ["string", "null"],
+      description:
+        "Une phrase courte si la date du jour a un lien réel et vérifiable avec le sujet (anniversaire, journée mondiale), sinon null. Ne jamais forcer.",
+    },
     body_md: {
       type: "string",
       description:
@@ -71,6 +77,7 @@ type GeneratedLesson = {
   body_md: string;
   anecdote: string;
   flex_phrase: string;
+  date_hook: string | null;
   questions: {
     tier: "base" | "bonus";
     prompt: string;
@@ -112,6 +119,110 @@ async function loadSystemPrompt(domain: string, pastTitles: string[]) {
       pastTitles.length ? pastTitles.map((t) => `- ${t}`).join("\n") : "(aucun)"
     )
     .trim();
+}
+
+export type ThemeOption = { title: string; pitch: string };
+
+/**
+ * Crée (si absent) le sondage du thème « Carte blanche » d'un dimanche :
+ * 4 options titre + pitch proposées par l'IA. Appelé le jeudi par le cron.
+ */
+export async function ensureThemePoll(sunday: string) {
+  const supabase = createAdminClient();
+
+  const { data: existing } = await supabase
+    .from("lumen_theme_polls")
+    .select("id")
+    .eq("sunday", sunday)
+    .maybeSingle();
+  if (existing) return { ok: true as const, skipped: true as const, sunday };
+
+  const { data: past } = await supabase
+    .from("lumen_lessons")
+    .select("title")
+    .order("date", { ascending: false })
+    .limit(30);
+  const pastTitles = (past ?? []).map((l) => `- ${l.title}`).join("\n");
+
+  const openai = new OpenAI();
+  const completion = await openai.chat.completions.create({
+    model: process.env.OPENAI_MODEL ?? "gpt-5.5",
+    messages: [
+      {
+        role: "system",
+        content:
+          "Tu proposes des thèmes de leçon de culture générale pour Lumen (cercle privé francophone). " +
+          "Propose 4 thèmes « Carte blanche » variés et précis (pas de survol encyclopédique), " +
+          "hors des sentiers battus, chacun avec un titre accrocheur et un pitch d'une phrase. " +
+          "Interdiction du tiret cadratin. Ne reprends aucun sujet déjà traité :\n" +
+          pastTitles,
+      },
+      { role: "user", content: `Propose les 4 thèmes pour le dimanche ${sunday}.` },
+    ],
+    response_format: {
+      type: "json_schema",
+      json_schema: {
+        name: "lumen_theme_options",
+        strict: true,
+        schema: {
+          type: "object",
+          additionalProperties: false,
+          required: ["options"],
+          properties: {
+            options: {
+              type: "array",
+              description: "Exactement 4 thèmes",
+              items: {
+                type: "object",
+                additionalProperties: false,
+                required: ["title", "pitch"],
+                properties: {
+                  title: { type: "string" },
+                  pitch: { type: "string" },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+  });
+
+  const content = completion.choices[0]?.message?.content;
+  if (!content) throw new Error("proposition de thèmes vide");
+  const { options } = JSON.parse(content) as { options: ThemeOption[] };
+  if (options.length !== 4) throw new Error("il faut exactement 4 thèmes");
+
+  const { error } = await supabase
+    .from("lumen_theme_polls")
+    .insert({ sunday, options });
+  if (error) throw error;
+
+  return { ok: true as const, skipped: false as const, sunday, options };
+}
+
+/** Thème gagnant du sondage d'un dimanche (le plus voté, premier en cas d'égalité). */
+async function winningTheme(
+  supabase: ReturnType<typeof createAdminClient>,
+  sunday: string
+): Promise<ThemeOption | null> {
+  const { data: poll } = await supabase
+    .from("lumen_theme_polls")
+    .select("id, options")
+    .eq("sunday", sunday)
+    .maybeSingle();
+  if (!poll) return null;
+
+  const { data: ballots } = await supabase
+    .from("lumen_theme_ballots")
+    .select("option_idx")
+    .eq("poll_id", poll.id);
+  if (!ballots?.length) return null;
+
+  const tally = [0, 0, 0, 0];
+  for (const b of ballots) tally[b.option_idx]++;
+  const winner = tally.indexOf(Math.max(...tally));
+  return (poll.options as ThemeOption[])[winner] ?? null;
 }
 
 export async function generateLesson(date: string) {
@@ -158,6 +269,15 @@ export async function generateLesson(date: string) {
     year: "numeric",
   }).format(new Date(date + "T12:00:00Z"));
 
+  // Dimanche Carte blanche : le cercle a peut-être voté un thème
+  let themeLine = "";
+  if (domain === "Carte blanche") {
+    const theme = await winningTheme(supabase, date);
+    if (theme) {
+      themeLine = `\n\nThème choisi par le cercle : « ${theme.title} » (${theme.pitch}). Traite précisément ce thème.`;
+    }
+  }
+
   const openai = new OpenAI();
   const model = process.env.OPENAI_MODEL ?? "gpt-5.5";
 
@@ -171,6 +291,7 @@ export async function generateLesson(date: string) {
           role: "user",
           content:
             `Rédige la leçon Lumen du ${dateFr} (domaine : ${domain}).` +
+            themeLine +
             (lastError
               ? `\n\nTa tentative précédente était invalide : ${lastError}. Corrige.`
               : ""),
@@ -218,6 +339,7 @@ export async function generateLesson(date: string) {
         body_md: lesson.body_md,
         anecdote: lesson.anecdote,
         flex_phrase: lesson.flex_phrase,
+        date_hook: lesson.date_hook,
         status: "draft",
       })
       .select("id")

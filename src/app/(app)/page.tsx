@@ -3,7 +3,48 @@ import { addDays, formatDateFr, mondayOfWeek, parisToday, weekdayOf } from "@/li
 import { LessonFlow } from "@/components/lesson-flow";
 import { WeekStrip } from "@/components/week-strip";
 import { Onboarding } from "@/components/onboarding";
+import { ThemeVote } from "@/components/theme-vote";
 import { MoonStar } from "lucide-react";
+
+/** Carte de vote « Carte blanche » : visible du jeudi au samedi. */
+async function themeVoteCard(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  userId: string,
+  today: string,
+  monday: string
+) {
+  if (![4, 5, 6].includes(weekdayOf(today))) return null;
+  const sunday = addDays(monday, 6);
+
+  const { data: poll } = await supabase
+    .from("lumen_theme_polls")
+    .select("id, options")
+    .eq("sunday", sunday)
+    .maybeSingle();
+  if (!poll) return null;
+
+  const { data: ballots } = await supabase
+    .from("lumen_theme_ballots")
+    .select("user_id, option_idx")
+    .eq("poll_id", poll.id);
+
+  const tallies = [0, 0, 0, 0];
+  let myVote: number | null = null;
+  for (const b of ballots ?? []) {
+    tallies[b.option_idx]++;
+    if (b.user_id === userId) myVote = b.option_idx;
+  }
+
+  return (
+    <ThemeVote
+      pollId={poll.id}
+      options={poll.options as { title: string; pitch: string }[]}
+      myVote={myVote}
+      tallies={tallies}
+      sundayLabel={formatDateFr(sunday)}
+    />
+  );
+}
 
 export default async function TodayPage() {
   const supabase = await createClient();
@@ -16,7 +57,9 @@ export default async function TodayPage() {
     await Promise.all([
       supabase
         .from("lumen_lessons")
-        .select("id, date, domain, title, hook, body_md, anecdote, flex_phrase")
+        .select(
+          "id, date, domain, title, hook, body_md, anecdote, flex_phrase, date_hook, audio_path"
+        )
         .eq("date", today)
         .maybeSingle(),
       supabase
@@ -111,6 +154,10 @@ export default async function TodayPage() {
 
   const words = lesson.body_md.split(/\s+/).length;
   const readingMinutes = Math.max(3, Math.round(words / 180));
+  const audioUrl = lesson.audio_path
+    ? `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/lumen-audio/${lesson.audio_path}`
+    : null;
+  const voteCard = await themeVoteCard(supabase, userId, today, monday);
 
   return (
     <div className="space-y-5">
@@ -126,6 +173,7 @@ export default async function TodayPage() {
         dateLabel={formatDateFr(lesson.date)}
         readingMinutes={readingMinutes}
         others={others}
+        audioUrl={audioUrl}
         questions={(questions ?? []).map((q) => ({
           id: q.id,
           tier: q.tier as "base" | "bonus",
@@ -137,6 +185,7 @@ export default async function TodayPage() {
         initialDone={Boolean(progress?.quiz_completed_at)}
         initialScore={progress?.score ?? 0}
       />
+      {voteCard}
     </div>
   );
 }
