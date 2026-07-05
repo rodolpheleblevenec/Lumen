@@ -200,6 +200,21 @@ export function LessonFlow({
   if (phase === "reading") {
     return (
       <article className="space-y-6">
+        {/* Progression fixée en haut de l'écran, visible dès qu'on scrolle
+            (la barre du bloc domaine sort vite du viewport) */}
+        <div
+          className={`fixed inset-x-0 top-0 z-30 h-1 transition-opacity duration-200 ${
+            readProgress > 0.02 ? "opacity-100" : "opacity-0"
+          }`}
+          style={{ background: "rgba(67,56,202,.12)" }}
+          aria-hidden
+        >
+          <div
+            className="h-full bg-accent transition-[width] duration-150"
+            style={{ width: `${readProgress * 100}%` }}
+          />
+        </div>
+
         {/* Bloc domaine */}
         <header className="rounded-[22px] bg-card-tint px-[22px] py-6">
           <div className="flex items-center justify-between gap-2">
