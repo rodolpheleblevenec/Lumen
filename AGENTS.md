@@ -8,6 +8,8 @@ This version has breaking changes — APIs, conventions, and file structure may 
 
 Webapp mobile-first de culture générale pour un cercle privé (~5-15 proches).
 **La spec fait foi : `docs/PRD.md`** — la lire avant toute feature.
+**Toute nouvelle interface suit `docs/design.md`** (DS « Le Studio » : tokens,
+recettes de composants, do/don't) — le lire avant d'écrire du JSX.
 
 ## Boucle produit
 
