@@ -18,3 +18,10 @@ for (const size of [192, 512]) {
     .toFile(`public/icons/icon-${size}.png`);
   console.log(`icon-${size}.png ✓`);
 }
+
+// Icône iOS (convention Next : src/app/apple-icon.png), dérivée du
+// favicon src/app/icon.svg (traits épaissis pour les petites tailles)
+import { readFileSync } from "fs";
+const favicon = readFileSync("src/app/icon.svg");
+await sharp(favicon).resize(180, 180).png().toFile("src/app/apple-icon.png");
+console.log("apple-icon.png ✓");

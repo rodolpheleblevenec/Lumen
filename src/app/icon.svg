@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+  <!-- Favicon « Le Levant » : tuile indigo, traits épaissis pour 16-32 px -->
+  <rect width="512" height="512" rx="112" fill="#4338ca"/>
+  <path d="M106 330a150 150 0 0 1 300 0Z" fill="#e2543a"/>
+  <path d="M62 330h388" stroke="#f6f3ec" stroke-width="44" stroke-linecap="round"/>
+  <path d="M256 78v56M114 142l40 40M398 142l-40 40" stroke="#f6f3ec" stroke-width="44" stroke-linecap="round"/>
+</svg>
