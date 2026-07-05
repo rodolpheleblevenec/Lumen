@@ -116,7 +116,7 @@ export function ReviewSession({ items }: { items: ReviewItem[] }) {
           {items.length} carte{items.length > 1 ? "s" : ""} à réviser
         </h1>
         <p className="max-w-xs text-[15px] text-balance text-ink-soft">
-          2 minutes pour ancrer ce que tu as appris —{" "}
+          2 minutes pour ancrer ce que tu as appris :{" "}
           <strong className="font-bold text-primary">5 points</strong> par
           bonne réponse.
         </p>

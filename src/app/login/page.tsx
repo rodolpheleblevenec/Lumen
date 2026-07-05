@@ -13,16 +13,9 @@ export default async function LoginPage() {
       <div className="flex flex-col items-center gap-5 text-center">
         <LogoTile size={88} />
         <h1 className="font-display text-[46px] text-primary-deep">Lumen</h1>
-        <p className="max-w-xs text-balance text-ink-soft">
-          5 minutes par jour pour une culture générale qui reste.
-        </p>
       </div>
 
       <GoogleButton />
-
-      <p className="max-w-xs text-center text-[11px] text-ink-faint">
-        Cercle privé — l&apos;accès est réservé aux invités.
-      </p>
     </main>
   );
 }

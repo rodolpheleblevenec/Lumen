@@ -191,6 +191,7 @@ Définies dans `globals.css`, à réutiliser telles quelles :
 | `animate-slide-in` | Question suivante |
 | `animate-flame` | Flamme du streak (en continu) |
 | `.skeleton` | Chargement (shimmer sur `line-soft`/`line`) |
+| `.hover-lift` | Cartes/lignes cliquables : lift de 2px au survol (souris uniquement) |
 
 Confetti (fin de quiz ≥ 70 pts) : `canvas-confetti` avec les couleurs
 `['#4338ca','#e2543a','#e7e4fa','#312a86']`. Vibrations : helper `buzz()`
@@ -201,6 +202,10 @@ Confetti (fin de quiz ≥ 70 pts) : `canvas-confetti` avec les couleurs
 - ✅ Copier un pattern existant plutôt qu'en créer un proche-mais-différent.
 - ✅ `tabular-nums` sur tout chiffre qui change (scores, streaks, compteurs).
 - ✅ Textes UI en français, tutoiement, ton chaleureux et direct.
+- ✅ Micro-interactions partout où c'est naturel : `hover-lift` sur les listes
+  cliquables, `animate-pop`/`animate-shake` sur les feedbacks, vibrations.
+- ❌ **Jamais de tiret cadratin « — » ni demi-cadratin « – »** : ni dans l'UI,
+  ni dans le contenu généré (règle aussi dans le prompt + validation serveur).
 - ❌ Pas d'emoji dans l'UI, pas de `font-bold` sur du sérif, pas de `dark:`.
 - ❌ Pas de nouveau hex en dur : si une couleur manque, l'ajouter comme token
   dans `globals.css` + `@theme inline` d'abord.

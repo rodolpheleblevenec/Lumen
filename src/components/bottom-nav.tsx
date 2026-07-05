@@ -95,9 +95,6 @@ export function SideNav({ dueCount = 0 }: { dueCount?: number }) {
           );
         })}
       </nav>
-      <p className="mt-auto px-4 text-[11px] leading-relaxed text-ink-faint">
-        5 minutes par jour pour une culture générale qui reste.
-      </p>
     </aside>
   );
 }

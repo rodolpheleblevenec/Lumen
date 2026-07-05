@@ -94,7 +94,7 @@ export function NotificationsToggle() {
   if (state === "denied") {
     return (
       <p className="text-sm text-ink-soft">
-        Notifications bloquées — réactive-les dans les réglages du
+        Notifications bloquées : réactive-les dans les réglages du
         navigateur.
       </p>
     );

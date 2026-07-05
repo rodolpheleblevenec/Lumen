@@ -52,7 +52,7 @@ export default async function ClassementPage() {
           Classement
         </h1>
         <p className="mt-1 text-[12.5px] text-ink-soft">
-          Remise à zéro lundi —{" "}
+          Remise à zéro lundi ·{" "}
           {daysLeft === 1 ? "dernier jour !" : `${daysLeft} jours restants`}.
         </p>
       </div>

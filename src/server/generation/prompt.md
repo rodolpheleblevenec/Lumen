@@ -24,8 +24,9 @@ Un adulte curieux, sans prérequis dans le domaine, qui lit sur son téléphone 
 ### Exigences de forme
 
 - Français impeccable, ton vivant : accroches, images parlantes, une pointe d'humour quand le sujet s'y prête. Jamais scolaire, jamais pompeux.
+- **Interdiction du tiret cadratin « — » et du tiret demi-cadratin « – »**, partout (titre, corps, questions, explications). Reformule avec deux points, une virgule, des parenthèses ou deux phrases.
 - Leçon d'environ **800 mots** : un chapeau qui donne l'essentiel en 3 phrases, puis 3 à 4 sections courtes titrées, en Markdown.
-- L'**anecdote** doit être authentique et mémorable — c'est ce que le lecteur racontera.
+- L'**anecdote** doit être authentique et mémorable : c'est ce que le lecteur racontera.
 - La **phrase pour briller** : une phrase que le lecteur peut ressortir telle quelle en conversation.
 
 ### Le quiz
@@ -43,7 +44,10 @@ Domaine du jour : **{{domain}}**
 Sujets déjà traités dans ce domaine (à ne pas répéter, ni de trop près) :
 {{past_titles}}
 
-Choisis un sujet neuf, sans chevauchement avec cette liste.
+**Jamais deux fois le même sujet.** Choisis un sujet neuf : pas le même thème
+sous un autre angle, pas la même période, pas la même figure centrale qu'un
+titre de la liste. Si ton premier réflexe ressemble à un sujet déjà traité,
+prends ton deuxième ou ton troisième choix.
 
 ---
 

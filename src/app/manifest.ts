@@ -4,7 +4,7 @@ export default function manifest(): MetadataRoute.Manifest {
   return {
     name: "Lumen",
     short_name: "Lumen",
-    description: "5 minutes par jour pour une culture générale qui reste.",
+    description: "La leçon du jour du cercle.",
     start_url: "/",
     display: "standalone",
     background_color: "#f6f3ec",

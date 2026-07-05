@@ -32,8 +32,8 @@ export default async function BibliothequePage() {
         </h1>
         <p className="mt-1 text-[12.5px] text-ink-soft">
           Toutes les leçons restent lisibles et quizzables (5 pts/bonne
-          réponse). Rattraper celle d&apos;hier peut sauver ton streak — 1
-          joker par semaine.
+          réponse). Rattraper celle d&apos;hier peut sauver ton streak
+          (1 joker par semaine).
         </p>
       </div>
 
@@ -47,7 +47,7 @@ export default async function BibliothequePage() {
             <li key={lesson.id}>
               <Link
                 href={isToday ? "/" : `/lecon/${lesson.id}`}
-                className={`flex items-center gap-3 rounded-[18px] bg-card p-3.5 transition active:scale-[0.99] ${
+                className={`hover-lift flex items-center gap-3 rounded-[18px] bg-card p-3.5 transition active:scale-[0.99] ${
                   isToday ? "border-2 border-primary" : "shadow-card"
                 }`}
                 style={

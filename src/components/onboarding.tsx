@@ -9,7 +9,7 @@ const SLIDES = [
   {
     Icon: Sun,
     title: "Une leçon par jour",
-    body: "Chaque matin, une leçon de culture générale de 5 minutes — la même pour tout le cercle. Lis-la, puis valide-la avec un quiz : 3 questions, et 2 bonus si tu fais un sans-faute.",
+    body: "Chaque matin, une leçon de culture générale de 5 minutes, la même pour tout le cercle. Lis-la, puis valide-la avec un quiz : 3 questions, et 2 bonus si tu fais un sans-faute.",
   },
   {
     Icon: Repeat2,

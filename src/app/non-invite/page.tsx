@@ -27,7 +27,7 @@ export default async function NonInvitePage() {
       <p className="max-w-sm text-balance text-ink-soft">
         Lumen est un cercle privé. Ton compte{" "}
         <span className="font-medium">{String(claims.email ?? "")}</span>{" "}
-        n&apos;est pas dans la liste des invités — demande à Rodolphe de
+        n&apos;est pas dans la liste des invités. Demande à Rodolphe de
         t&apos;ajouter !
       </p>
       <form action="/auth/signout" method="post">

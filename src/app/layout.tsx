@@ -20,7 +20,7 @@ const instrumentSerif = Instrument_Serif({
 
 export const metadata: Metadata = {
   title: "Lumen",
-  description: "5 minutes par jour pour une culture générale qui reste.",
+  description: "La leçon du jour du cercle.",
 };
 
 export const viewport: Viewport = {

@@ -311,7 +311,7 @@ export function LessonFlow({
         </span>
         <h2 className="font-display text-[34px] text-primary-deep">Sans-faute !</h2>
         <p className="max-w-xs text-[15px] text-balance text-ink-soft">
-          2 questions bonus débloquées — plus dures, mais{" "}
+          2 questions bonus débloquées : plus dures, mais{" "}
           <strong className="font-bold text-accent">20 points</strong> chacune.
         </p>
         <button

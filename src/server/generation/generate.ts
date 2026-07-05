@@ -92,6 +92,8 @@ function validate(lesson: GeneratedLesson): string | null {
       return `question ${i + 1} : answer_idx hors bornes`;
   }
   if (lesson.notions.length !== 5) return "il faut exactement 5 notions";
+  if (/[—–]/.test(JSON.stringify(lesson)))
+    return "le tiret cadratin « — » (et demi-cadratin « – ») est interdit : reformule avec deux points, virgule ou parenthèses";
   return null;
 }
 
@@ -168,7 +170,7 @@ export async function generateLesson(date: string) {
         {
           role: "user",
           content:
-            `Rédige la leçon Lumen du ${dateFr} — domaine : ${domain}.` +
+            `Rédige la leçon Lumen du ${dateFr} (domaine : ${domain}).` +
             (lastError
               ? `\n\nTa tentative précédente était invalide : ${lastError}. Corrige.`
               : ""),

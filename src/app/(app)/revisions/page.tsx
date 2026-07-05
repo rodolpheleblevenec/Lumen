@@ -45,7 +45,7 @@ export default async function RevisionsPage() {
                 "fr-FR",
                 { weekday: "long", day: "numeric", month: "long" }
               ).format(new Date(next.due_date + "T12:00:00Z"))}.`
-            : "Termine le quiz du jour pour créer tes premières cartes — elles reviendront à J+2, J+7, J+30."}
+            : "Termine le quiz du jour pour créer tes premières cartes : elles reviendront à J+2, J+7, J+30."}
         </p>
       </div>
     );
