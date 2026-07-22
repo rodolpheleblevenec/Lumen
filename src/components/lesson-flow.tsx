@@ -3,7 +3,8 @@
 import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { useRouter } from "next/navigation";
 import ReactMarkdown from "react-markdown";
-import { Check, Clock, Flame, X } from "lucide-react";
+import { Check, Clock, Flame, Star, X } from "lucide-react";
+import { Logo } from "@/components/logo";
 import { completeQuiz, type QuizResult } from "@/app/(app)/actions";
 import { NotificationsToggle } from "@/components/notifications-toggle";
 import { AudioButton } from "@/components/audio-button";
@@ -157,6 +158,28 @@ export function LessonFlow({
   );
   const [submitting, setSubmitting] = useState(false);
 
+  /* ── Titre machine à écrire (Carte blanche du dimanche) ── */
+  const isCarteBlanche = lesson.domain === "Carte blanche";
+  const [typed, setTyped] = useState(() =>
+    isCarteBlanche ? 0 : Number.POSITIVE_INFINITY
+  );
+  useEffect(() => {
+    if (!isCarteBlanche || phase !== "reading") return;
+    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    let i = 0;
+    const id = setInterval(
+      () => {
+        i += reduced ? lesson.title.length : 1;
+        setTyped(i);
+        if (i >= lesson.title.length) clearInterval(id);
+      },
+      reduced ? 0 : 30
+    );
+    return () => clearInterval(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isCarteBlanche, phase]);
+  const titleTyping = isCarteBlanche && typed < lesson.title.length;
+
   /* ── Karaoké audio : segment en cours + auto-scroll ── */
   const segments = useMemo(() => buildSegments(lesson), [lesson]);
   const [audioFraction, setAudioFraction] = useState<number | null>(null);
@@ -303,7 +326,12 @@ export function LessonFlow({
             data-seg="title"
             className={`font-display mt-4 text-[33px] leading-[1.1] text-balance text-primary-deep lg:text-[40px] ${segClass("title")}`}
           >
-            {lesson.title}
+            {titleTyping ? lesson.title.slice(0, typed) : lesson.title}
+            {titleTyping && (
+              <span className="text-accent" aria-hidden>
+                |
+              </span>
+            )}
           </h1>
 
           {lesson.date_hook && (
@@ -468,6 +496,15 @@ export function LessonFlow({
   if (!question) return null; // données incomplètes : rien à afficher
   const answered = selected !== null;
   const isBonus = question.tier === "bonus";
+  // Sans-faute complet en vue : les pastilles deviennent des étoiles
+  const perfectRun =
+    isBonus &&
+    qIndex === 4 &&
+    answered &&
+    selected === question.answerIdx &&
+    baseCorrectSoFar === 3 &&
+    questions[3] !== undefined &&
+    answers[3] === questions[3].answerIdx;
   const progressLabel = isBonus
     ? `Bonus ${qIndex - 2}/2 · 20 pts`
     : `Question ${qIndex + 1}/3`;
@@ -482,21 +519,31 @@ export function LessonFlow({
         >
           {progressLabel}
         </p>
-        <div className="flex gap-1.5" aria-hidden>
-          {[0, 1, 2, 3, 4].slice(0, isBonus ? 5 : 3).map((i) => (
-            <span
-              key={i}
-              className="h-1.5 w-[22px] rounded-full"
-              style={{
-                background:
-                  i < qIndex
-                    ? "var(--primary)"
-                    : i === qIndex
-                      ? "rgba(67,56,202,.45)"
-                      : "var(--line)",
-              }}
-            />
-          ))}
+        <div className="flex items-center gap-1.5" aria-hidden>
+          {perfectRun
+            ? [0, 1, 2, 3, 4].map((i) => (
+                <Star
+                  key={i}
+                  size={14}
+                  className="animate-pop text-accent"
+                  style={{ animationDelay: `${i * 110}ms` }}
+                  fill="currentColor"
+                />
+              ))
+            : [0, 1, 2, 3, 4].slice(0, isBonus ? 5 : 3).map((i) => (
+                <span
+                  key={i}
+                  className="h-1.5 w-[22px] rounded-full"
+                  style={{
+                    background:
+                      i < qIndex
+                        ? "var(--primary)"
+                        : i === qIndex
+                          ? "rgba(67,56,202,.45)"
+                          : "var(--line)",
+                  }}
+                />
+              ))}
         </div>
       </div>
 
@@ -597,6 +644,15 @@ function DoneScreen({
   const displayPoints = result?.alreadyDone ? points : animatedPoints;
   const [rereading, setRereading] = useState(false);
 
+  // Le joker sauve le streak : une carte se retourne avant le score
+  const [jokerCardSeen, setJokerCardSeen] = useState(false);
+  const showJokerCard = Boolean(result?.streakSaved) && !jokerCardSeen;
+  useEffect(() => {
+    if (!showJokerCard) return;
+    const id = setTimeout(() => setJokerCardSeen(true), 2600);
+    return () => clearTimeout(id);
+  }, [showJokerCard]);
+
   // Permission notifications, lue côté client uniquement (SSR : indisponible)
   const notifPermission = useSyncExternalStore(
     emptySubscribe,
@@ -607,6 +663,29 @@ function DoneScreen({
     () => "unsupported"
   );
   const showNotifPrompt = !result?.alreadyDone && notifPermission === "default";
+
+  if (showJokerCard) {
+    return (
+      <button
+        className="fixed inset-0 z-50 flex w-full items-center justify-center"
+        style={{ background: "rgba(34,32,58,.55)", perspective: "900px" }}
+        onClick={() => setJokerCardSeen(true)}
+        aria-label="Joker utilisé : ton streak est sauvé"
+      >
+        <span className="animate-card-flip flex h-[300px] w-[210px] flex-col items-center justify-center gap-4 rounded-[22px] bg-primary shadow-xl">
+          <span className="flex h-16 w-16 items-center justify-center rounded-2xl bg-card">
+            <Logo size={34} />
+          </span>
+          <span className="text-[13px] font-bold uppercase tracking-[0.22em] text-white">
+            Joker
+          </span>
+          <span className="max-w-[150px] text-center text-sm text-white/80">
+            Ton streak est sauvé !
+          </span>
+        </span>
+      </button>
+    );
+  }
 
   return (
     <div className="animate-fade-up flex flex-col items-center gap-5 pt-10 text-center">

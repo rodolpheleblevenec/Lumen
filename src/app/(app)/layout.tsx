@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { parisToday } from "@/lib/dates";
 import { BottomNav, SideNav } from "@/components/bottom-nav";
 import { Logo } from "@/components/logo";
+import { LogoSecret } from "@/components/logo-secret";
 
 export default async function AppLayout({
   children,
@@ -52,21 +53,34 @@ export default async function AppLayout({
   if (!profile) redirect("/non-invite");
 
   const today = parisToday();
-  const [{ data: streak }, { count: dueCount }] = await Promise.all([
-    supabase
-      .from("lumen_streaks")
-      .select("current, last_validated_date")
-      .eq("user_id", profile.id)
-      .maybeSingle(),
-    supabase
-      .from("lumen_srs_cards")
-      .select("*", { count: "exact", head: true })
-      .eq("user_id", profile.id)
-      .lte("due_date", today)
-      .lt("level", 5),
-  ]);
+  const [{ data: streak }, { count: dueCount }, { count: acquired }] =
+    await Promise.all([
+      supabase
+        .from("lumen_streaks")
+        .select("current, last_validated_date")
+        .eq("user_id", profile.id)
+        .maybeSingle(),
+      supabase
+        .from("lumen_srs_cards")
+        .select("*", { count: "exact", head: true })
+        .eq("user_id", profile.id)
+        .lte("due_date", today)
+        .lt("level", 5),
+      supabase
+        .from("lumen_srs_cards")
+        .select("*", { count: "exact", head: true })
+        .eq("user_id", profile.id)
+        .eq("level", 5),
+    ]);
 
   const validatedToday = streak?.last_validated_date === today;
+  // La flamme grandit avec le streak : 7, 30, 100 jours
+  const s = streak?.current ?? 0;
+  const flameSize = s >= 100 ? 18 : s >= 30 ? 16 : 14;
+  const flameGlow =
+    s >= 7
+      ? `drop-shadow(0 0 ${s >= 100 ? 6 : s >= 30 ? 4 : 3}px rgba(255, 196, 110, 0.9))`
+      : undefined;
 
   return (
     <div className="mx-auto flex min-h-dvh w-full max-w-[600px] lg:max-w-[1020px] lg:gap-14 lg:px-8">
@@ -74,12 +88,14 @@ export default async function AppLayout({
 
       <div className="flex min-h-dvh w-full min-w-0 flex-col lg:max-w-[680px]">
       <header className="flex items-center justify-between px-5 pb-2 pt-5 lg:justify-end lg:px-1 lg:pt-8">
-        <span className="flex items-center gap-2 lg:hidden">
-          <Logo size={22} />
-          <span className="font-display text-[25px] text-primary-deep">
-            Lumen
+        <LogoSecret acquired={acquired ?? 0}>
+          <span className="flex items-center gap-2 lg:hidden">
+            <Logo size={22} />
+            <span className="font-display text-[25px] text-primary-deep">
+              Lumen
+            </span>
           </span>
-        </span>
+        </LogoSecret>
         <span
           className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-bold tabular-nums text-white ${
             validatedToday ? "push-pill-accent" : "push-pill bg-primary"
@@ -96,8 +112,9 @@ export default async function AppLayout({
           }
         >
           <Flame
-            size={14}
-            className={validatedToday ? "animate-flame" : ""}
+            size={flameSize}
+            className={validatedToday || s >= 30 ? "animate-flame" : ""}
+            style={{ filter: flameGlow }}
             fill="currentColor"
             aria-hidden
           />

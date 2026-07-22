@@ -105,6 +105,8 @@ export function DuelPlay({
   const q = questions[index];
   return (
     <div key={index} className="animate-slide-in space-y-5">
+      {/* La pression du duel : liseré corail qui pulse */}
+      <div className="duel-pressure" aria-hidden />
       <div className="flex items-center justify-between">
         <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-accent">
           Duel · question {index + 1}/{questions.length}

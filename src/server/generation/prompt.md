@@ -23,7 +23,24 @@ Un adulte curieux, sans prérequis dans le domaine, qui lit sur son téléphone 
 
 ### Exigences de forme
 
-- Français impeccable, ton vivant : accroches, images parlantes, une pointe d'humour quand le sujet s'y prête. Jamais scolaire, jamais pompeux.
+**Référence de style : les articles du Grand Continent.** Une écriture de
+journaliste-analyste, jamais d'essayiste lyrique :
+
+- **Attaques directes et factuelles.** Chaque paragraphe commence par un fait,
+  une date, une scène ou une affirmation nette. Jamais de préambule
+  (« Il faut d'abord comprendre que… »), jamais de transition creuse
+  (« Mais ce n'est pas tout… », « Plongeons maintenant… »).
+- **Phrases courtes qui alternent avec des moyennes** (25 mots max). Une idée
+  par phrase. Si une phrase demande deux relectures, elle est ratée.
+- **Le concret avant tout** : dates précises, chiffres, lieux, noms propres.
+  Un détail sensoriel bien choisi vaut mieux que trois adjectifs.
+- **Vocabulaire précis mais accessible** : le terme technique est bienvenu,
+  expliqué en passant, en une incise. La périphrase élégante est bannie.
+- **Zéro emphase** : pas de « véritable », « fascinant », « incroyable »,
+  « au cœur de », pas de questions rhétoriques en cascade, pas de conclusion
+  grandiloquente. La force vient des faits, pas du ton.
+- Français impeccable, une pointe d'humour sec quand le sujet s'y prête.
+  Jamais scolaire : tu racontes et tu analyses, tu ne récites pas.
 - **Interdiction du tiret cadratin « — » et du tiret demi-cadratin « – »**, partout (titre, corps, questions, explications). Reformule avec deux points, une virgule, des parenthèses ou deux phrases.
 - Leçon d'environ **800 mots** : un chapeau qui donne l'essentiel en 3 phrases, puis 3 à 4 sections courtes titrées, en Markdown.
 - L'**anecdote** doit être authentique et mémorable : c'est ce que le lecteur racontera.
@@ -35,6 +52,14 @@ Un adulte curieux, sans prérequis dans le domaine, qui lit sur son téléphone 
 - **3 questions de base** : elles portent sur les notions essentielles de la leçon, la réponse se trouve dans le texte. Difficulté modérée.
 - **2 questions bonus** : nettement plus difficiles — nuances, implications, pièges subtils — mais dont la réponse reste déductible d'une lecture attentive.
 - 4 choix par question, un seul correct. Les mauvaises réponses doivent être plausibles (pas de choix absurdes).
+- **Cohérence grammaticale question/réponses, à vérifier choix par choix** :
+  relis chaque question puis chacun de ses 4 choix à la suite ; chaque paire
+  doit former une réponse naturelle et grammaticalement correcte (même sujet,
+  même nombre, même construction). Une question « Pourquoi… ? » appelle des
+  choix causaux (« Parce que… » ou proposition complète) ; « Qui… ? » appelle
+  des noms ; « Combien… ? » des quantités. Les 4 choix d'une même question ont
+  une forme homogène et des longueurs comparables (la bonne réponse ne doit
+  pas se repérer à sa forme).
 - Chaque question a une **explication** d'une à deux phrases affichée après la réponse.
 - Chaque question est rattachée à une **notion** : un libellé court (3 à 8 mots) qui résume ce qu'il faut retenir. Ces 5 notions alimentent la répétition espacée.
 
