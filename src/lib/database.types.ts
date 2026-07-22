@@ -14,18 +14,6 @@ export type Database = {
   }
   public: {
     Tables: {
-      lumen_allowed_emails: {
-        Row: {
-          email: string
-        }
-        Insert: {
-          email: string
-        }
-        Update: {
-          email?: string
-        }
-        Relationships: []
-      }
       lumen_badges: {
         Row: {
           badge_key: string
@@ -376,6 +364,7 @@ export type Database = {
           display_name: string
           id: string
           notif_time: string
+          onboarded_at: string | null
           push_hour: number
           timezone: string
         }
@@ -385,6 +374,7 @@ export type Database = {
           display_name: string
           id: string
           notif_time?: string
+          onboarded_at?: string | null
           push_hour?: number
           timezone?: string
         }
@@ -394,6 +384,7 @@ export type Database = {
           display_name?: string
           id?: string
           notif_time?: string
+          onboarded_at?: string | null
           push_hour?: number
           timezone?: string
         }
@@ -2237,7 +2228,6 @@ export type Database = {
         Args: { p_amount: number; p_recipient: string; p_sender: string }
         Returns: Json
       }
-      lumen_backfill_member: { Args: { p_email: string }; Returns: undefined }
       lumen_is_member: { Args: never; Returns: boolean }
       purchase_item: {
         Args: { p_item_code: string; p_user_id: string }

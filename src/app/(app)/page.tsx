@@ -107,7 +107,7 @@ export default async function TodayPage() {
   const today = parisToday();
   const monday = mondayOfWeek(today);
 
-  const [{ data: lesson }, { data: weekLessons }, { data: streakRow }] =
+  const [{ data: lesson }, { data: weekLessons }, { data: streakRow }, { data: me }] =
     await Promise.all([
       supabase
         .from("lumen_lessons")
@@ -126,7 +126,13 @@ export default async function TodayPage() {
         .select("joker_used_week_of")
         .eq("user_id", userId)
         .maybeSingle(),
+      supabase
+        .from("lumen_profiles")
+        .select("onboarded_at")
+        .eq("id", userId)
+        .maybeSingle(),
     ]);
+  const showOnboarding = !me?.onboarded_at;
 
   // Semaine : quels jours sont validés ?
   const weekIds = (weekLessons ?? []).map((l) => l.id);
@@ -157,7 +163,7 @@ export default async function TodayPage() {
       .maybeSingle();
     return (
       <div className="space-y-6">
-        <Onboarding />
+        <Onboarding show={showOnboarding} />
         <WeekStrip
           today={today}
           monday={monday}
@@ -215,7 +221,7 @@ export default async function TodayPage() {
 
   return (
     <div className="space-y-5">
-      <Onboarding />
+      <Onboarding show={showOnboarding} />
       <WeekStrip
         today={today}
         monday={monday}

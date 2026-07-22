@@ -76,7 +76,7 @@ Ce que Lumen fait mieux que les apps du marché (Sophia, Sapio) :
 
 ### 4.4 Streaks, classement, badges
 - **Streak** : un jour est validé par le quiz du jour terminé. Rattrapage possible sous 24h (1 joker/semaine, non cumulable).
-- **Classement hebdomadaire** : somme des points (quiz + révisions + rattrapages), remis à zéro le lundi 00h. Podium de la semaine passée conservé.
+- **Classement général** (depuis juillet 2026) : somme de tous les points (quiz + révisions + rattrapages) depuis le début, sans remise à zéro. Le récap mensuel conserve un podium du mois pour l'émulation courte.
 - **Badges** : streak 7/30/100/365, première semaine parfaite, 50 notions acquises, domaine maîtrisé (30 notions acquises dans un domaine), n°1 hebdo…
 - Les streaks et badges des autres membres sont visibles (émulation).
 

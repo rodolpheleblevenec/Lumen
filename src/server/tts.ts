@@ -11,16 +11,53 @@ export function audioPublicUrl(path: string): string {
   return `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/${BUCKET}/${path}`;
 }
 
-/** Markdown → texte lisible à voix haute. */
-function toSpeechText(title: string, hook: string, body: string): string {
-  const plain = body
-    .replace(/^##\s*(.+)$/gm, "$1.") // titres de sections → phrases
-    .replace(/\*\*([^*]+)\*\*/g, "$1")
-    .replace(/\*([^*]+)\*/g, "$1")
-    .replace(/^[-*]\s+/gm, "")
-    .replace(/^>\s+/gm, "")
+/**
+ * Markdown → texte lisible à voix haute, avec la structure annoncée
+ * (« Titre », « Sous-titre 1 », « Citation »…) et des pauses marquées
+ * (les « ... » et sauts de paragraphes font respirer la voix).
+ */
+export function toSpeechText(
+  title: string,
+  hook: string,
+  body: string,
+  anecdote?: string | null,
+  flexPhrase?: string | null
+): string {
+  const clean = (t: string) =>
+    t
+      .replace(/\*\*([^*]+)\*\*/g, "$1")
+      .replace(/\*([^*]+)\*/g, "$1")
+      .replace(/^[-*]\s+/gm, "")
+      .trim();
+
+  let subtitle = 0;
+  const spokenBody = body
+    .split(/\n(?=##\s)/)
+    .map((chunk) => {
+      const m = chunk.match(/^##\s*(.+)\n?/);
+      if (m) {
+        subtitle++;
+        const rest = clean(chunk.slice(m[0].length));
+        return `...\n\nSous-titre ${subtitle} : ${m[1].trim()}.\n\n${rest}`;
+      }
+      return clean(chunk);
+    })
+    .join("\n\n")
+    // Citations (pull-quotes) : annoncées
+    .replace(/^>\s*(.+)$/gm, "...\n\nCitation : « $1 »\n\n...")
     .replace(/\n{3,}/g, "\n\n");
-  return `${title}.\n\n${hook}\n\n${plain}`;
+
+  const parts = [
+    `Titre : ${title}.`,
+    `...`,
+    clean(hook),
+    spokenBody,
+  ];
+  if (anecdote) parts.push(`...\n\nL'anecdote : ${clean(anecdote)}`);
+  if (flexPhrase)
+    parts.push(`...\n\nLa phrase à retenir : « ${clean(flexPhrase)} »`);
+
+  return parts.join("\n\n");
 }
 
 function chunk(text: string): string[] {
@@ -47,7 +84,7 @@ export async function ensureLessonAudio(lessonId: string): Promise<string> {
 
   const { data: lesson } = await admin
     .from("lumen_lessons")
-    .select("id, title, hook, body_md, audio_path")
+    .select("id, title, hook, body_md, anecdote, flex_phrase, audio_path")
     .eq("id", lessonId)
     .eq("status", "published")
     .maybeSingle();
@@ -55,7 +92,15 @@ export async function ensureLessonAudio(lessonId: string): Promise<string> {
   if (lesson.audio_path) return audioPublicUrl(lesson.audio_path);
 
   const openai = new OpenAI();
-  const chunks = chunk(toSpeechText(lesson.title, lesson.hook, lesson.body_md));
+  const chunks = chunk(
+    toSpeechText(
+      lesson.title,
+      lesson.hook,
+      lesson.body_md,
+      lesson.anecdote,
+      lesson.flex_phrase
+    )
+  );
 
   let voiceUsed = "";
   const buffers: Buffer[] = [];
@@ -69,7 +114,9 @@ export async function ensureLessonAudio(lessonId: string): Promise<string> {
           input,
           instructions:
             "Français naturel, ton chaleureux et posé, rythme de podcast culturel. " +
-            "Articule les noms propres, marque de courtes pauses entre les sections.",
+            "Articule les noms propres. Les annonces de structure (Titre, Sous-titre, " +
+            "Citation, L'anecdote) se disent sur un ton légèrement détaché, comme un " +
+            "sommaire, suivies d'une courte pause. Les « ... » marquent une vraie pause.",
         });
         buffers.push(Buffer.from(await res.arrayBuffer()));
         voiceUsed = voice;

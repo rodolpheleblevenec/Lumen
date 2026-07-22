@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { Flame, Swords } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
-import { addDays, mondayOfWeek, parisStartOfDayISO, parisToday } from "@/lib/dates";
 import { DOMAIN_HUES } from "@/components/domain-icon";
 import type { DuelResultSide } from "@/server/duels";
 
@@ -11,16 +10,12 @@ export default async function ClassementPage() {
   const supabase = await createClient();
   const { data: claims } = await supabase.auth.getClaims();
   const me = claims?.claims?.sub as string;
-  const today = parisToday();
-  const monday = mondayOfWeek(today);
 
+  // Classement général : tous les points depuis le début
   const [{ data: profiles }, { data: points }, { data: streaks }, { count: lessonsDone }] =
     await Promise.all([
       supabase.from("lumen_profiles").select("id, display_name, avatar_url"),
-      supabase
-        .from("lumen_points_ledger")
-        .select("user_id, points")
-        .gte("occurred_at", parisStartOfDayISO(monday)),
+      supabase.from("lumen_points_ledger").select("user_id, points"),
       supabase.from("lumen_streaks").select("user_id, current, best"),
       supabase
         .from("lumen_lesson_progress")
@@ -47,15 +42,6 @@ export default async function ClassementPage() {
       streak: streakByUser.get(p.id)?.current ?? 0,
     }))
     .sort((a, b) => b.points - a.points);
-
-  const daysLeft = Math.max(
-    1,
-    Math.round(
-      (new Date(addDays(monday, 7) + "T00:00:00Z").getTime() -
-        new Date(today + "T00:00:00Z").getTime()) /
-        86_400_000
-    )
-  );
 
   const nameOf = new Map((profiles ?? []).map((p) => [p.id, p.display_name]));
   const now = new Date().toISOString();
@@ -88,11 +74,11 @@ export default async function ClassementPage() {
     return `${myRes?.score ?? "–"}-${theirRes?.score ?? "–"}`;
   };
 
-  const weekPoints = [...totals.values()].reduce((a, b) => a + b, 0);
+  const totalPoints = [...totals.values()].reduce((a, b) => a + b, 0);
   const bestStreak = Math.max(0, ...(streaks ?? []).map((s) => s.best ?? 0));
   const circleStats = [
     { value: lessonsDone ?? 0, label: "Leçons validées" },
-    { value: weekPoints, label: "Points cette semaine" },
+    { value: totalPoints, label: "Points du cercle" },
     { value: bestStreak, label: "Record de streak" },
   ];
 
@@ -103,8 +89,7 @@ export default async function ClassementPage() {
           Classement
         </h1>
         <p className="mt-1 text-[12.5px] text-ink-soft">
-          Remise à zéro lundi ·{" "}
-          {daysLeft === 1 ? "dernier jour !" : `${daysLeft} jours restants`}.
+          Classement général : tous les points comptent, depuis le début.
         </p>
       </div>
 

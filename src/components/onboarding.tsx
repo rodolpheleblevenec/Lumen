@@ -1,9 +1,8 @@
 "use client";
 
-import { useState, useSyncExternalStore } from "react";
+import { useState } from "react";
 import { Sun, Repeat2, Flame } from "lucide-react";
-
-const emptySubscribe = () => () => {};
+import { markOnboarded } from "@/app/(app)/actions";
 
 const SLIDES = [
   {
@@ -19,38 +18,22 @@ const SLIDES = [
   {
     Icon: Flame,
     title: "Le streak, entre proches",
-    body: "Terminer le quiz du jour entretient ton streak et te fait grimper au classement de la semaine. Un jour raté ? Rattrape la leçon d'hier avec ton joker (1 par semaine).",
+    body: "Terminer le quiz du jour entretient ton streak et te fait grimper au classement. Un jour raté ? Rattrape la leçon d'hier avec ton joker (1 par semaine).",
   },
 ] as const;
 
-const STORAGE_KEY = "lumen_onboarded_v1";
-
-export function Onboarding() {
+/** Bulles tutorielles du premier accès. Vu = enregistré sur le compte. */
+export function Onboarding({ show }: { show: boolean }) {
   const [dismissed, setDismissed] = useState(false);
   const [slide, setSlide] = useState(0);
 
-  // Déjà vu ? Lu côté client uniquement (SSR : considéré comme vu).
-  const onboarded = useSyncExternalStore(
-    emptySubscribe,
-    () => {
-      try {
-        return Boolean(localStorage.getItem(STORAGE_KEY));
-      } catch {
-        return true; // stockage indisponible : on n'insiste pas
-      }
-    },
-    () => true
-  );
-
-  if (onboarded || dismissed) return null;
+  if (!show || dismissed) return null;
 
   function close() {
-    try {
-      localStorage.setItem(STORAGE_KEY, "1");
-    } catch {
-      /* idem */
-    }
     setDismissed(true);
+    void markOnboarded().catch(() => {
+      /* réessaiera à la prochaine visite */
+    });
   }
 
   const { Icon, title, body } = SLIDES[slide];

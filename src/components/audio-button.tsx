@@ -11,9 +11,12 @@ import { getLessonAudio } from "@/app/(app)/actions";
 export function AudioButton({
   lessonId,
   initialUrl,
+  onProgress,
 }: {
   lessonId: string;
   initialUrl: string | null;
+  /** Fraction 0-1 de l'audio lu (null quand la lecture se termine). */
+  onProgress?: (fraction: number | null) => void;
 }) {
   const [url, setUrl] = useState<string | null>(initialUrl);
   const [playing, setPlaying] = useState(false);
@@ -29,6 +32,11 @@ export function AudioButton({
         src={url}
         className="h-9 w-full"
         aria-label="Écouter la leçon"
+        onTimeUpdate={(e) => {
+          const el = e.currentTarget;
+          if (el.duration > 0) onProgress?.(el.currentTime / el.duration);
+        }}
+        onEnded={() => onProgress?.(null)}
       />
     );
   }

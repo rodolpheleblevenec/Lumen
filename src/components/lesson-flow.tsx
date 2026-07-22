@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, useSyncExternalStore } from "react";
+import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { useRouter } from "next/navigation";
 import ReactMarkdown from "react-markdown";
 import { Check, Clock, Flame, X } from "lucide-react";
@@ -63,6 +63,51 @@ function useCountUp(target: number, duration = 900) {
   return value;
 }
 
+/* ── Synchronisation audio ↔ texte (mode podcast) ──
+   L'audio n'a pas de timecodes : on estime la position au prorata du
+   nombre de caractères « parlés » de chaque segment (annonces incluses). */
+
+type Segment = {
+  key: string;
+  kind: "title" | "hook" | "block" | "anecdote" | "flex";
+  md?: string;
+  weight: number;
+};
+
+function spokenLen(t: string): number {
+  return t.replace(/[#>*_`-]/g, "").trim().length;
+}
+
+function buildSegments(lesson: LessonData): Segment[] {
+  const segs: Segment[] = [
+    { key: "title", kind: "title", weight: lesson.title.length + 10 },
+    { key: "hook", kind: "hook", weight: spokenLen(lesson.hook) },
+  ];
+  lesson.body_md
+    .split(/\n\s*\n/)
+    .map((b) => b.trim())
+    .filter(Boolean)
+    .forEach((b, i) => {
+      const bonus = /^##\s/.test(b) ? 20 : /^>/.test(b) ? 16 : 0;
+      segs.push({ key: `b${i}`, kind: "block", md: b, weight: spokenLen(b) + bonus });
+    });
+  if (lesson.anecdote)
+    segs.push({ key: "anecdote", kind: "anecdote", weight: spokenLen(lesson.anecdote) + 14 });
+  if (lesson.flex_phrase)
+    segs.push({ key: "flex", kind: "flex", weight: spokenLen(lesson.flex_phrase) + 22 });
+  return segs;
+}
+
+function activeSegment(segments: Segment[], fraction: number): number {
+  const total = segments.reduce((a, s) => a + s.weight, 0);
+  let cum = 0;
+  for (let i = 0; i < segments.length; i++) {
+    cum += segments[i].weight;
+    if (fraction * total < cum) return i;
+  }
+  return segments.length - 1;
+}
+
 function LessonBody({ body }: { body: string }) {
   return (
     <div className="prose-lesson space-y-4">
@@ -111,6 +156,21 @@ export function LessonFlow({
       : null
   );
   const [submitting, setSubmitting] = useState(false);
+
+  /* ── Karaoké audio : segment en cours + auto-scroll ── */
+  const segments = useMemo(() => buildSegments(lesson), [lesson]);
+  const [audioFraction, setAudioFraction] = useState<number | null>(null);
+  const activeIdx =
+    audioFraction === null ? -1 : activeSegment(segments, audioFraction);
+  useEffect(() => {
+    if (activeIdx < 0) return;
+    const key = segments[activeIdx]?.key;
+    document
+      .querySelector(`[data-seg="${key}"]`)
+      ?.scrollIntoView({ behavior: "smooth", block: "center" });
+  }, [activeIdx, segments]);
+  const segClass = (key: string) =>
+    activeIdx >= 0 && segments[activeIdx]?.key === key ? "audio-active" : "";
 
   /* ── Barre de progression de lecture ── */
   const [readProgress, setReadProgress] = useState(0);
@@ -200,12 +260,9 @@ export function LessonFlow({
   if (phase === "reading") {
     return (
       <article className="space-y-6">
-        {/* Progression fixée en haut de l'écran, visible dès qu'on scrolle
-            (la barre du bloc domaine sort vite du viewport) */}
+        {/* Progression de lecture : fixée tout en haut de l'écran */}
         <div
-          className={`fixed inset-x-0 top-0 z-30 h-1 transition-opacity duration-200 ${
-            readProgress > 0.02 ? "opacity-100" : "opacity-0"
-          }`}
+          className="fixed inset-x-0 top-0 z-30 h-1"
           style={{ background: "rgba(67,56,202,.12)" }}
           aria-hidden
         >
@@ -242,7 +299,10 @@ export function LessonFlow({
             <span className="shrink-0 text-xs text-ink-soft">{dateLabel}</span>
           </div>
 
-          <h1 className="font-display mt-4 text-[33px] leading-[1.1] text-balance text-primary-deep lg:text-[40px]">
+          <h1
+            data-seg="title"
+            className={`font-display mt-4 text-[33px] leading-[1.1] text-balance text-primary-deep lg:text-[40px] ${segClass("title")}`}
+          >
             {lesson.title}
           </h1>
 
@@ -251,7 +311,11 @@ export function LessonFlow({
           )}
 
           <div className="mt-3">
-            <AudioButton lessonId={lesson.id} initialUrl={audioUrl} />
+            <AudioButton
+              lessonId={lesson.id}
+              initialUrl={audioUrl}
+              onProgress={setAudioFraction}
+            />
           </div>
 
           {others.length > 0 && (
@@ -283,27 +347,44 @@ export function LessonFlow({
             </div>
           )}
 
-          {/* Progression de lecture, liée au scroll */}
-          <div
-            className="mt-4 h-[7px] rounded-full"
-            style={{ background: "rgba(67,56,202,.15)" }}
-          >
-            <div
-              className="h-full rounded-full bg-accent transition-[width] duration-150"
-              style={{ width: `${readProgress * 100}%` }}
-            />
-          </div>
         </header>
 
         <div className="space-y-6 px-1">
-          <p className="text-[17px] font-medium leading-relaxed text-[#514c6e] lg:text-[19px]">
+          <p
+            data-seg="hook"
+            className={`text-[17px] font-medium leading-relaxed text-[#514c6e] lg:text-[19px] ${segClass("hook")}`}
+          >
             {lesson.hook}
           </p>
 
-          <LessonBody body={lesson.body_md} />
+          {/* Corps segmenté : chaque bloc se surligne quand l'audio le lit */}
+          <div className="prose-lesson space-y-4">
+            {segments
+              .filter((s) => s.kind === "block")
+              .map((s) => (
+                <div key={s.key} data-seg={s.key} className={segClass(s.key)}>
+                  <ReactMarkdown
+                    components={{
+                      h2: (props) => <h2 {...props} />,
+                      ul: (props) => (
+                        <ul className="list-disc space-y-1 pl-5" {...props} />
+                      ),
+                      strong: (props) => (
+                        <strong className="font-semibold" {...props} />
+                      ),
+                    }}
+                  >
+                    {s.md ?? ""}
+                  </ReactMarkdown>
+                </div>
+              ))}
+          </div>
 
           {lesson.anecdote && (
-            <aside className="rounded-2xl bg-primary-soft p-4">
+            <aside
+              data-seg="anecdote"
+              className={`rounded-2xl bg-primary-soft p-4 ${segClass("anecdote")}`}
+            >
               <p className="text-[9.5px] font-bold uppercase tracking-[0.2em] text-primary">
                 L&apos;anecdote
               </p>
@@ -314,7 +395,10 @@ export function LessonFlow({
           )}
 
           {lesson.flex_phrase && (
-            <aside className="rounded-2xl bg-accent-soft p-4">
+            <aside
+              data-seg="flex"
+              className={`rounded-2xl bg-accent-soft p-4 ${segClass("flex")}`}
+            >
               <p className="text-[9.5px] font-bold uppercase tracking-[0.2em] text-accent">
                 Pour briller
               </p>

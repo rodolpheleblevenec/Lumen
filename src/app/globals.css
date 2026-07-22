@@ -206,6 +206,16 @@ body {
   }
 }
 
+/* Passage en cours de lecture audio (mode podcast) */
+.audio-active {
+  background: var(--primary-soft);
+  box-shadow: 0 0 0 6px var(--primary-soft);
+  border-radius: 10px;
+  transition:
+    background 0.3s ease,
+    box-shadow 0.3s ease;
+}
+
 /* ── Micro-interactions ── */
 
 /* Souris uniquement : les éléments cliquables se soulèvent légèrement */

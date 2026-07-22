@@ -3,7 +3,7 @@
 Webapp mobile-first de culture générale pour un cercle privé de proches.
 Chaque nuit, l'IA génère une leçon partagée ; chaque matin, on la lit (5-7 min),
 on passe un quiz adaptatif, et la répétition espacée ancre les notions pour de bon.
-Streaks, classement hebdo, duels et badges entretiennent l'émulation.
+Streaks, classement général, duels et badges entretiennent l'émulation.
 
 📄 **Toute la spec : [docs/PRD.md](docs/PRD.md)** · Design system : [docs/design.md](docs/design.md) · Analyse marché : [docs/benchmark.md](docs/benchmark.md)
 
@@ -14,7 +14,7 @@ Streaks, classement hebdo, duels et badges entretiennent l'émulation.
 - **Répétition espacée** : 5 notions/leçon, J+2/J+7/J+30/J+90, max 10 cartes/jour.
 - **Streaks & joker** : le quiz du jour valide la journée ; 1 joker/semaine pour
   rattraper la leçon d'hier ; **mode vacances** (gel du streak, 14 j/an max).
-- **Classement hebdo** + stats du cercle ; **duels amicaux** asynchrones
+- **Classement général** (points cumulés) + stats du cercle ; **duels amicaux** asynchrones
   (5 questions communes, 24h, face-à-face score + temps, trophées, gage libre).
 - **Bibliothèque** de toutes les leçons (rattrapage 5 pts/réponse).
 - **IA à la demande** (jamais pré-générée) : « Creuser » une partie de leçon

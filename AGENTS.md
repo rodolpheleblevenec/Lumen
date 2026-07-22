@@ -15,7 +15,7 @@ recettes de composants, do/don't) — le lire avant d'écrire du JSX.
 
 Leçon du jour partagée (générée la nuit par OpenAI) → quiz adaptatif (3 base + 2 bonus
 si sans-faute) → cartes SRS (J+2/J+7/J+30/J+90, max 10 révisions/jour) → streaks,
-classement hebdo, badges. Bibliothèque des leçons passées + 1 joker de rattrapage/semaine.
+classement général (points cumulés), badges. Bibliothèque des leçons passées + 1 joker de rattrapage/semaine.
 
 ## Stack & conventions
 

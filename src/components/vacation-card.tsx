@@ -78,33 +78,35 @@ export function VacationCard({
           </button>
         </div>
       ) : (
-        <div className="flex flex-wrap items-end gap-2">
-          <label className="flex-1 text-xs text-ink-soft">
-            Du
-            <input
-              type="date"
-              min={today}
-              value={form.start}
-              onChange={(e) => setForm({ ...form, start: e.target.value })}
-              className="mt-1 block w-full rounded-xl border-2 border-line bg-card px-3 py-2 text-sm text-ink"
-            />
-          </label>
-          <label className="flex-1 text-xs text-ink-soft">
-            Au
-            <input
-              type="date"
-              min={form.start || today}
-              value={form.end}
-              onChange={(e) => setForm({ ...form, end: e.target.value })}
-              className="mt-1 block w-full rounded-xl border-2 border-line bg-card px-3 py-2 text-sm text-ink"
-            />
-          </label>
+        <div className="space-y-3">
+          <div className="grid grid-cols-2 gap-2.5">
+            <label className="min-w-0 text-xs text-ink-soft">
+              Du
+              <input
+                type="date"
+                min={today}
+                value={form.start}
+                onChange={(e) => setForm({ ...form, start: e.target.value })}
+                className="mt-1 block w-full min-w-0 appearance-none rounded-xl border-2 border-line bg-card px-2.5 py-2 text-sm text-ink"
+              />
+            </label>
+            <label className="min-w-0 text-xs text-ink-soft">
+              Au
+              <input
+                type="date"
+                min={form.start || today}
+                value={form.end}
+                onChange={(e) => setForm({ ...form, end: e.target.value })}
+                className="mt-1 block w-full min-w-0 appearance-none rounded-xl border-2 border-line bg-card px-2.5 py-2 text-sm text-ink"
+              />
+            </label>
+          </div>
           <button
             onClick={save}
             disabled={pending || !form.start || !form.end}
-            className="push-cta-primary min-h-10 rounded-full bg-primary px-5 py-2.5 text-xs font-bold uppercase tracking-[0.12em] text-white disabled:opacity-60"
+            className="push-cta-primary min-h-11 w-full rounded-full bg-primary px-5 py-2.5 text-xs font-bold uppercase tracking-[0.12em] text-white disabled:opacity-60"
           >
-            Geler
+            Geler mon streak
           </button>
         </div>
       )}

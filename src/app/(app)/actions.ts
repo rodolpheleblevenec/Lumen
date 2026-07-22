@@ -384,6 +384,17 @@ export async function voteTheme(pollId: string, optionIdx: number) {
   revalidatePath("/");
 }
 
+/* ─── Onboarding vu (lié au compte, pas au navigateur) ─── */
+
+export async function markOnboarded() {
+  const { supabase, userId } = await requireUserId();
+  await supabase
+    .from("lumen_profiles")
+    .update({ onboarded_at: new Date().toISOString() })
+    .eq("id", userId)
+    .is("onboarded_at", null);
+}
+
 /* ─── Préférences : heure de rappel ─── */
 
 export async function setPushHour(hour: number) {

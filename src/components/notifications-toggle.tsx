@@ -93,10 +93,32 @@ export function NotificationsToggle() {
 
   if (state === "denied") {
     return (
-      <p className="text-sm text-ink-soft">
-        Notifications bloquées : réactive-les dans les réglages du
-        navigateur.
-      </p>
+      <div className="shadow-card space-y-2 rounded-[18px] bg-card p-4">
+        <p className="text-[13.5px] font-bold">Notifications bloquées</p>
+        <p className="text-xs leading-relaxed text-ink-soft">
+          Tu as refusé les notifications : le navigateur mémorise ce choix
+          et Lumen ne peut plus redemander. Pour les réactiver :
+        </p>
+        <ul className="list-disc space-y-1 pl-4 text-xs leading-relaxed text-ink-soft">
+          <li>
+            <strong className="font-semibold">iPhone (app installée)</strong> :
+            Réglages → Notifications → Lumen → Autoriser.
+          </li>
+          <li>
+            <strong className="font-semibold">Android / Chrome</strong> :
+            cadenas dans la barre d&apos;adresse → Autorisations →
+            Notifications → Autoriser.
+          </li>
+          <li>
+            <strong className="font-semibold">Ordinateur</strong> : icône à
+            gauche de l&apos;URL → Notifications → Autoriser, puis recharge
+            la page.
+          </li>
+        </ul>
+        <p className="text-xs text-ink-soft">
+          Reviens ici ensuite : le bouton d&apos;activation réapparaîtra.
+        </p>
+      </div>
     );
   }
 
